@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Soundwave - MVP V19.0 (i18n)</title>
+    <title>Soundwave - MVP V20.0 (Stable Core)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        /* --- Styles (Maintained V8.3/V16.0 Standard) --- */
+        /* --- 样式 (V8.3/V16.0 标准) --- */
         :root { --bg-color: #222; --panel-color: #333; --highlight: #4caf50; --text-color: #eee; --gold-color: #ffd700; --cpu-used: #ff9800; --item-blue: #64b5f6; --border: 1px solid #555; --playhead-color: #ff5252; --lose-color: #ff5252; }
         :root { --c-score: #ffd700; --c-support: #00e5ff; --c-engine: #d500f9; }
 
@@ -16,10 +16,11 @@
         /* Header Layout */
         .header { grid-column: 1 / -1; grid-row: 1 / 2; background: var(--panel-color); border: var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; position: relative; }
         
-        /* Left: Language & Clear */
-        .header-left { display: flex; align-items: center; justify-content: flex-start; min-width: 100px; z-index: 10; gap: 10px; } 
-        .btn-icon { border: none; padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s; white-space: nowrap; color: white; }
+        /* Left: Buttons */
+        .header-left { display: flex; align-items: center; justify-content: flex-start; min-width: 150px; gap: 8px; z-index: 10; } 
+        .btn-icon { border: none; padding: 6px 12px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s; white-space: nowrap; color: white; }
         .btn-lang { background: #555; } .btn-lang:hover { background: #666; }
+        .btn-help { background: #1976d2; } .btn-help:hover { background: #1565c0; }
         .btn-clear { background: #d32f2f; } .btn-clear:hover { background: #f44336; }
         
         /* Center: Stats (Absolute) */
@@ -33,7 +34,7 @@
         .gold-display { color: var(--gold-color); text-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
         
         /* Right: Debug */
-        .header-right { display: flex; align-items: center; justify-content: flex-end; min-width: 100px; z-index: 10; }
+        .header-right { display: flex; align-items: center; justify-content: flex-end; min-width: 150px; z-index: 10; }
         .debug-panel { display: flex; gap: 4px; align-items: center; background: #111; padding: 4px 8px; border: 1px solid #444; border-radius: 4px; }
         .debug-text { color: #666; font-size: 10px; font-weight: bold; margin-right: 2px; }
         .debug-input { width: 40px; background: #333; color: white; border: 1px solid #555; padding: 2px; font-size: 11px; text-align: center; }
@@ -73,8 +74,11 @@
         .placed-item.selected-placed { border-color: white; z-index: 20; transform: scale(1.02); }
         .playing-lock .placed-item { cursor: not-allowed; pointer-events: none; }
         .playing-lock .grid-cell { cursor: not-allowed; }
+        
+        /* 播放高亮 */
         .placed-item.playing-active { filter: brightness(2.5) contrast(1.5) !important; box-shadow: 0 0 30px white !important; z-index: 50 !important; transform: scale(1.1); }
         
+        /* 静态高亮 */
         .placed-item.glowing-score { box-shadow: inset 0 0 10px var(--c-score); border: 2px solid var(--c-score); background-color: rgba(255,215,0,0.3) !important; }
         .placed-item.glowing-support { box-shadow: inset 0 0 10px var(--c-support); border: 2px solid var(--c-support); background-color: rgba(0,229,255,0.3) !important; }
         .placed-item.glowing-engine { box-shadow: inset 0 0 10px var(--c-engine); border: 2px solid var(--c-engine); background-color: rgba(213,0,249,0.3) !important; }
@@ -132,7 +136,7 @@
         table.result-table th { text-align: left; border-bottom: 1px solid #666; padding: 5px; color: #aaa; }
         table.result-table td { padding: 8px 5px; border-bottom: 1px solid #444; }
         .score-val { color: gold; font-weight: bold; }
-        
+        /* Tags */
         .buff-tag { display: inline-block; background: #222; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 4px; border: 1px solid #444; }
         .tag-score { color: var(--c-score); border-color: var(--c-score); }
         .tag-support { color: var(--c-support); border-color: var(--c-support); }
@@ -145,6 +149,11 @@
         .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #444; }
         .status-dot.done { background: var(--highlight); }
         .status-dot.current { border: 2px solid white; transform: scale(1.2); }
+        
+        /* Help Modal */
+        .help-section { text-align: left; margin-bottom: 20px; border-bottom: 1px solid #555; padding-bottom: 15px; }
+        .help-section h3 { color: var(--highlight); margin-top: 0; }
+        .help-section p { color: #ccc; font-size: 14px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -155,6 +164,7 @@
     <div class="header">
         <div class="header-left">
             <button class="btn-icon btn-lang" onclick="toggleLanguage()">🌐 CN/EN</button>
+            <button class="btn-icon btn-help" onclick="showHelpModal()">❓ HELP</button>
             <button class="btn-icon btn-clear" onclick="clearAllItems()">🗑️ <span id="txtClear">CLEAR</span></button>
         </div>
         
@@ -225,8 +235,7 @@
             <div class="detail-title" id="detailTitle">Ready</div>
             <div class="detail-meta" id="detailMeta"></div>
             <div class="detail-desc" id="detailContent">
-                Welcome to Soundwave. <br>
-                Build your loop, hit Submit.
+                ...
             </div>
         </div>
         <div class="info-box info-right">
@@ -244,6 +253,21 @@
         <h1>Soundwave</h1>
         <p style="color:#aaa; margin-bottom:30px;" id="txtStartMsg">Music Roguelike Deckbuilder</p>
         <button class="submit-btn" onclick="startGame()" id="btnStartGame">START GAME</button>
+    </div>
+</div>
+
+<div class="modal" id="helpModal">
+    <div class="modal-content" style="width: 600px; text-align: left;">
+        <h2 style="text-align:center; color:var(--highlight);" id="lblHelpTitle">HOW TO PLAY</h2>
+        <div class="help-section">
+            <h3 id="lblHelpControl">CONTROLS</h3>
+            <p id="txtHelpControl">...</p>
+        </div>
+        <div class="help-section">
+            <h3 id="lblHelpGoal">GOAL</h3>
+            <p id="txtHelpGoal">...</p>
+        </div>
+        <button class="submit-btn" onclick="closeHelpModal()">GOT IT</button>
     </div>
 </div>
 
@@ -286,6 +310,14 @@
     </div>
 </div>
 
+<div class="modal" id="poolModal">
+    <div class="modal-content">
+        <h2>当前池子 (Debug)</h2>
+        <div class="card-grid" id="poolGrid"></div>
+        <button class="submit-btn" onclick="document.getElementById('poolModal').style.display='none'">保存</button>
+    </div>
+</div>
+
 <script>
     // --- Constants ---
     const TICKS = 32;
@@ -293,244 +325,68 @@
     const TOTAL_DURATION = 16; 
     const TICK_DURATION = TOTAL_DURATION / TICKS;
     
-    // --- I18N Data ---
     const UI_TEXT = {
         en: {
-            clear: "CLEAR",
-            cpu: "★ CPU",
-            target: "TARGET",
-            funds: "FUNDS (G)",
-            inventory: "INVENTORY",
-            shop: "SHOP",
-            upCpu: "UP CPU",
-            sell: "SELL",
-            reroll: "REROLL",
-            ready: "Ready",
-            readyDesc: "1. Place items on the timeline.<br>2. Optimize placement for Groove.<br>3. Hit Submit to play.",
-            level: "Level:",
-            tracks: "Tracks:",
-            submit: "SUBMIT",
-            startTitle: "Music Roguelike Deckbuilder",
-            startGame: "START GAME",
-            report: "REPORT",
-            resTarget: "Target",
-            resTotal: "Total",
-            nextLevel: "NEXT LEVEL",
-            victory: "VICTORY",
-            retry: "RETRY",
-            acceptFate: "ACCEPT FATE",
-            youWin: "YOU WIN!",
-            winMsg: "You have completed all levels.",
-            playAgain: "PLAY AGAIN",
-            gameOver: "GAME OVER",
-            loseMsg: "Ran out of lives.",
-            tryAgain: "TRY AGAIN",
-            purchased: "SOLD",
-            outcomeWin: "SUCCESS",
-            outcomeLose: "FAILED",
-            reward: "Reward",
-            consolation: "Consolation",
-            ng1Charge: "NG1 Charge",
-            stacks: "stacks",
-            item: "Item",
-            base: "Base",
-            cond: "Cond",
-            mult: "Mult",
-            final: "Final",
-            note: "Note",
-            effect: "Effect",
-            sold: "Sold"
+            clear: "CLEAR", help: "HELP", cpu: "★ CPU", target: "TARGET", funds: "FUNDS (G)",
+            inventory: "INVENTORY", shop: "SHOP", upCpu: "UP CPU", sell: "SELL", reroll: "REROLL",
+            ready: "Ready", readyDesc: "1. Build Loop<br>2. Hit Submit",
+            level: "Level:", tracks: "Tracks:", submit: "SUBMIT",
+            startTitle: "Music Roguelike Deckbuilder", startGame: "START GAME",
+            report: "REPORT", resTarget: "Target", resTotal: "Total",
+            nextLevel: "NEXT LEVEL", victory: "VICTORY", retry: "RETRY", acceptFate: "ACCEPT FATE",
+            youWin: "YOU WIN!", winMsg: "You have completed all levels.", playAgain: "PLAY AGAIN",
+            gameOver: "GAME OVER", loseMsg: "Ran out of lives.", tryAgain: "TRY AGAIN",
+            purchased: "SOLD", outcomeWin: "SUCCESS", outcomeLose: "FAILED",
+            reward: "Reward", consolation: "Consolation", ng1Charge: "NG1 Charge", stacks: "stacks",
+            item: "Item", base: "Base", cond: "Cond", mult: "Mult", final: "Final", note: "Note", effect: "Effect", sold: "Sold",
+            helpTitle: "HOW TO PLAY", helpControlTitle: "CONTROLS",
+            helpControlTxt: "• <b>Left Click</b>: Place / Select<br>• <b>Right Click</b>: Remove Item<br>• <b>Click Background</b>: Deselect",
+            helpGoalTitle: "GOAL", helpGoalTxt: "• Place items to build a music loop.<br>• Reach <b>Target Groove</b>.<br>• <b>3 Lives</b> max."
         },
         cn: {
-            clear: "清空",
-            cpu: "★ CPU",
-            target: "目标 Groove",
-            funds: "资金 (G)",
-            inventory: "库存",
-            shop: "商店",
-            upCpu: "升级 CPU",
-            sell: "出售",
-            reroll: "刷新",
-            ready: "准备就绪",
-            readyDesc: "1. 将道具放置在时间轴上。<br>2. 优化摆放以获取最大 Groove。<br>3. 点击结算开始演奏。",
-            level: "当前关卡:",
-            tracks: "轨道数量:",
-            submit: "结算",
-            startTitle: "音乐构筑 Roguelike MVP 演示",
-            startGame: "开始游戏",
-            report: "结算报告",
-            resTarget: "目标",
-            resTotal: "总分",
-            nextLevel: "下一关",
-            victory: "加冕时刻",
-            retry: "重试",
-            acceptFate: "接受结局",
-            youWin: "恭喜通关!",
-            winMsg: "你已经完成了所有挑战。",
-            playAgain: "再次开始",
-            gameOver: "游戏结束",
-            loseMsg: "你的生命值已耗尽。",
-            tryAgain: "重头再来",
-            purchased: "已购",
-            outcomeWin: "挑战成功",
-            outcomeLose: "挑战失败",
-            reward: "赏金",
-            consolation: "抚恤金",
-            ng1Charge: "NG1 充能",
-            stacks: "层",
-            item: "道具",
-            base: "基础",
-            cond: "条件",
-            mult: "倍率",
-            final: "最终",
-            note: "备注",
-            effect: "效果",
-            sold: "已售出"
+            clear: "清空", help: "帮助", cpu: "★ CPU", target: "目标 Groove", funds: "资金 (G)",
+            inventory: "库存", shop: "商店", upCpu: "升级 CPU", sell: "出售", reroll: "刷新",
+            ready: "准备就绪", readyDesc: "1. 构筑旋律<br>2. 点击结算",
+            level: "当前关卡:", tracks: "轨道数量:", submit: "结算",
+            startTitle: "音乐构筑 Roguelike MVP 演示", startGame: "开始游戏",
+            report: "结算报告", resTarget: "目标", resTotal: "总分",
+            nextLevel: "下一关", victory: "加冕时刻", retry: "重试", acceptFate: "接受结局",
+            youWin: "恭喜通关!", winMsg: "你已经完成了所有挑战。", playAgain: "再次开始",
+            gameOver: "游戏结束", loseMsg: "你的生命值已耗尽。", tryAgain: "重头再来",
+            purchased: "已购", outcomeWin: "挑战成功", outcomeLose: "挑战失败",
+            reward: "赏金", consolation: "抚恤金", ng1Charge: "NG1 充能", stacks: "层",
+            item: "道具", base: "基础", cond: "条件", mult: "倍率", final: "最终", note: "备注", effect: "效果", sold: "已售出",
+            helpTitle: "玩法说明", helpControlTitle: "操作方式",
+            helpControlTxt: "• <b>左键点击</b>: 放置/选中<br>• <b>右键点击</b>: 移除<br>• <b>点击空白</b>: 取消",
+            helpGoalTitle: "游戏目标", helpGoalTxt: "• 放置道具构建乐句<br>• 达到 <b>目标 Groove</b><br>• 共有 <b>3 条生命</b>"
         }
     };
 
     const DEFINITIONS = {
-        en: {
-            "Strong Beat": "1st and 3rd beat of a bar (Tick 0, 8, 16, 24).",
-            "Weak Beat": "2nd and 4th beat of a bar.",
-            "Same Track": "Items placed on the same horizontal track.",
-            "Sync": "Items triggered at the exact same time on different tracks.",
-            "Empty Slot": "An unoccupied Grid unit on the timeline.",
-            "Consume": "Reduce target's Groove and use reduced amount for self."
-        },
-        cn: {
-            "强拍": "每小节的第1拍与第3拍 (Tick 0, 8, 16, 24)。",
-            "弱拍": "每小节的第2拍与第4拍。",
-            "同轨": "处于同一音轨上的道具。",
-            "同步": "垂直方向上，与该道具在同一时间点被触发的其他道具。",
-            "空拍": "音轨上未被占用的格子。",
-            "吞噬": "减少目标道具的分数，并将其作为自身分数的计算依据。"
-        }
+        en: { "Strong Beat": "1st/3rd beat (Tick 0,8,16,24)", "Weak Beat": "2nd/4th beat", "Same Track": "Same row", "Sync": "Same column", "Empty Slot": "Unoccupied grid", "Consume": "Reduces target score, adds to self" },
+        cn: { "强拍": "每小节的第1拍与第3拍", "弱拍": "每小节的第2拍与第4拍", "同轨": "处于同一音轨上的道具", "同步": "垂直方向上，与该道具在同一时间点被触发的其他道具", "空拍": "音轨上未被占用的格子", "吞噬": "减少目标道具的分数，并将其作为自身分数的计算依据" }
     };
 
     const DB = [
-        { id: "SB1", 
-          name: {en: "Kick Drum", cn: "底鼓"}, 
-          desc: {
-              en: "Gain 20 Groove on trigger.<br>If placed on a [Strong Beat], gain an additional 10 Groove.",
-              cn: "触发时获得 20 Groove。<br>若放置在 [强拍] 上，额外获得 10 Groove。"
-          }, 
-          len: 4, cpu: 1, base: 20, type: "score", color: "#ffecb3", price: 75, rarity: 1 },
-        
-        { id: "SB2", 
-          name: {en: "Sidechain", cn: "侧链"}, 
-          desc: {
-              en: "Increase Groove of all [Sync] items by +50%.<br>If placed on a [Strong Beat], +25% more.",
-              cn: "使所有 [同步] 道具 Groove +50%。<br>若放置在 [强拍] 上，该增幅效果额外 +25%。"
-          },
-          len: 4, cpu: 1, base: 0, type: "support", color: "#b2ebf2", price: 75, rarity: 1 },
-
-        { id: "SB3", 
-          name: {en: "Accent", cn: "重音标记"}, 
-          desc: {
-              en: "[Same Track] Next item Groove +100%.<br>If on [Strong Beat], Next item counts as on [Strong Beat].",
-              cn: "[同轨] 使 下一个 道具 Groove +100%。<br>若放置在 [强拍] 上，下一个 道具将被视为 在[强拍]触发。"
-          },
-          len: 4, cpu: 2, base: 0, type: "support", color: "#80deea", price: 100, rarity: 2 },
-
-        { id: "SB4", 
-          name: {en: "Master Clock", cn: "主时钟"}, 
-          desc: {
-              en: "If 5+ [Strong Beat] triggered before: Subsequent [Strong Beat] items Groove x 1.5.",
-              cn: "若 触发前 已触发至少 5次 [强拍] 效果：<br>后续 触发的所有 [强拍] 道具 Groove x 1.5。"
-          },
-          len: 4, cpu: 4, base: 0, type: "engine", color: "#e1bee7", price: 150, rarity: 3 },
-
-        { id: "SB5", 
-          name: {en: "Quantizer", cn: "量化器"}, 
-          desc: {
-              en: "If placed on [Strong Beat], all [Weak Beat] spots count as [Strong Beat].",
-              cn: "若放置在 [强拍] 上，全场所有的 [弱拍] 均被视为 [强拍]。"
-          },
-          len: 8, cpu: 4, base: 0, type: "engine", color: "#ce93d8", price: 150, rarity: 3 },
-
-        { id: "EB1", 
-          name: {en: "Rest Note", cn: "休止符"}, 
-          desc: {
-              en: "Gain 14 Groove. If [Same Track] prev item gap ≥ 4 [Empty Slot], +20 Groove.",
-              cn: "触发时获得 14 Groove。<br>若 [同轨]前一个 道具与自身间隔 ≥ 4 [空拍]，额外获得 20 Groove。"
-          },
-          len: 2, cpu: 1, base: 14, type: "score", color: "#ffe082", price: 75, rarity: 1 },
-
-        { id: "EB2", 
-          name: {en: "Pre-Delay", cn: "预延时"}, 
-          desc: {
-              en: "[Same Track] Next item +35%. +12.5% per [Empty Slot] gap (Max 125%).",
-              cn: "[同轨] 使 下一个 道具 Groove +35%。<br>自身与下一个道具每间隔 1 [空拍]，该增幅效果 +12.5%（上限125%）。"
-          },
-          len: 2, cpu: 1, base: 0, type: "support", color: "#4dd0e1", price: 75, rarity: 1 },
-
-        { id: "EB3", 
-          name: {en: "Isolation Booth", cn: "隔离室"}, 
-          desc: {
-              en: "[Sync] items +10. +7.5% per [Empty Slot] gap to neighbors (Max 240%).",
-              cn: "使所有 [同步] 道具 Groove +10。<br>自身 每与 [同轨] 前后道具间隔 1 [空拍]，使 [同步] 道具的 Groove +7.5%（上限240%）。"
-          },
-          len: 4, cpu: 2, base: 0, type: "support", color: "#00bcd4", price: 100, rarity: 2 },
-
-        { id: "EB4", 
-          name: {en: "Atmosphere", cn: "氛围采样"}, 
-          desc: {
-              en: "Gain 30 Groove. +5% for every [Empty Slot] before trigger.",
-              cn: "触发时获得 30 Groove。<br>触发前 每出现 1 [空拍]，自身 Groove +5%。"
-          },
-          len: 4, cpu: 3, base: 30, type: "score", color: "#ffd54f", price: 150, rarity: 3 },
-
-        { id: "EB5", 
-          name: {en: "Time Stretch", cn: "时间拉伸"}, 
-          desc: {
-              en: "Passive: 1 [Empty Slot] counts as 2 [Empty Slot] for all effects.",
-              cn: "持有此道具时：<br>全场每 1 [空拍] 将被视为 2 [空拍]。"
-          },
-          len: 8, cpu: 4, base: 0, type: "engine", color: "#ba68c8", price: 150, rarity: 3 },
-
-        { id: "EB6", 
-          name: {en: "Pad", cn: "铺底音色"}, 
-          desc: {
-              en: "Gain 30 Groove. +5% for every [Empty Slot] currently on timeline.",
-              cn: "持续期间获得 30 Groove。<br>持续期间 全场每存在 1 [空拍]，自身 Groove +5%。"
-          },
-          len: 8, cpu: 2, base: 30, type: "score", color: "#ffca28", price: 100, rarity: 2 },
-
-        { id: "NG1", 
-          name: {en: "Viral Hit", cn: "网红单曲"}, 
-          desc: {
-              en: "Gain 30 Groove. On Sold: Discount shop based on times played.",
-              cn: "触发时获得 30 Groove。<br>离场: 卖出此道具时，基于其累计上场次数，立即 使商店所有道具打折。"
-          },
-          len: 8, cpu: 1, base: 30, type: "score", color: "#cfd8dc", price: 75, rarity: 1 },
-
-        { id: "NG2", 
-          name: {en: "Layering", cn: "叠层"}, 
-          desc: {
-              en: "Gain 20 Groove. If [Sync] with others, +10 Groove.",
-              cn: "触发时获得 20 Groove。<br>若有其他道具 [同步] 触发，额外获得 10 Groove。"
-          },
-          len: 4, cpu: 1, base: 20, type: "score", color: "#b0bec5", price: 75, rarity: 1 },
-
-        { id: "NG3", 
-          name: {en: "Solo Fader", cn: "独奏推子"}, 
-          desc: {
-              en: "[Same Track] Prev/Next +35%. If no [Sync] items, +35% more.",
-              cn: "[同轨] 使 前一个 和 下一个 道具 Groove +35%。<br>若触发时 无 其他道具 [同步] 触发，该增幅效果额外 +35%。"
-          },
-          len: 2, cpu: 1, base: 0, type: "support", color: "#90a4ae", price: 100, rarity: 2 },
-
-        { id: "NG4", 
-          name: {en: "Noise Gate", cn: "降噪门"}, 
-          desc: {
-              en: "[Consume]: Halve Groove of [Sync] items. Gain (40 + Consumed) x 1.5.",
-              cn: "[吞噬]: 使所有 [同步] 道具的 Groove 减半。<br>自身获得 Groove = (40 + [吞噬] 的数值) x 1.5。"
-          },
-          len: 4, cpu: 2, base: 40, type: "score", color: "#78909c", price: 150, rarity: 3 }
+        { id: "SB1", name: {en: "Kick Drum", cn: "底鼓"}, desc: {en: "Gain 20 Groove.<br>On [Strong Beat]: +10 Groove.", cn: "触发时获得 20 Groove。<br>若放置在 [强拍] 上，额外获得 10 Groove。"}, len: 4, cpu: 1, base: 20, type: "score", color: "#ffecb3", price: 75, rarity: 1 },
+        { id: "SB2", name: {en: "Sidechain", cn: "侧链"}, desc: {en: "[Sync] items +50%.<br>On [Strong Beat]: +25% more.", cn: "使所有 [同步] 道具 Groove +50%。<br>若放置在 [强拍] 上，该增幅效果额外 +25%。"}, len: 4, cpu: 1, base: 0, type: "support", color: "#b2ebf2", price: 75, rarity: 1 },
+        { id: "SB3", name: {en: "Accent", cn: "重音标记"}, desc: {en: "[Same Track] Next item +100%.<br>On [Strong Beat]: Next counts as [Strong Beat].", cn: "[同轨] 使 下一个 道具 Groove +100%。<br>若放置在 [强拍] 上，下一个 道具将被视为 在[强拍]触发。"}, len: 4, cpu: 2, base: 0, type: "support", color: "#80deea", price: 100, rarity: 2 },
+        { id: "SB4", name: {en: "Master Clock", cn: "主时钟"}, desc: {en: "If 5+ [Strong Beat] before: Next [Strong Beat] x1.5.", cn: "若 触发前 已触发至少 5次 [强拍] 效果：<br>后续 触发的所有 [强拍] 道具 Groove x 1.5。"}, len: 4, cpu: 4, base: 0, type: "engine", color: "#e1bee7", price: 150, rarity: 3 },
+        { id: "SB5", name: {en: "Quantizer", cn: "量化器"}, desc: {en: "On [Strong Beat]: All [Weak Beat] count as [Strong Beat].", cn: "若放置在 [强拍] 上，全场所有的 [弱拍] 均被视为 [强拍]。"}, len: 8, cpu: 4, base: 0, type: "engine", color: "#ce93d8", price: 150, rarity: 3 },
+        { id: "EB1", name: {en: "Rest Note", cn: "休止符"}, desc: {en: "Gain 14 Groove.<br>If prev gap ≥ 4 [Empty Slot]: +20 Groove.", cn: "触发时获得 14 Groove。<br>若 [同轨]前一个 道具与自身间隔 ≥ 4 [空拍]，额外获得 20 Groove。"}, len: 2, cpu: 1, base: 14, type: "score", color: "#ffe082", price: 75, rarity: 1 },
+        { id: "EB2", name: {en: "Pre-Delay", cn: "预延时"}, desc: {en: "[Same Track] Next +35%. +12.5% per gap (Max 125%).", cn: "[同轨] 使 下一个 道具 Groove +35%。<br>自身与下一个道具每间隔 1 [空拍]，该增幅效果 +12.5%（上限125%）。"}, len: 2, cpu: 1, base: 0, type: "support", color: "#4dd0e1", price: 75, rarity: 1 },
+        { id: "EB3", name: {en: "Isolation Booth", cn: "隔离室"}, desc: {en: "[Sync] +10. +7.5% per gap (Max 240%).", cn: "使所有 [同步] 道具 Groove +10。<br>自身 每与 [同轨] 前后道具间隔 1 [空拍]，使 [同步] 道具的 Groove +7.5%（上限240%）。"}, len: 4, cpu: 2, base: 0, type: "support", color: "#00bcd4", price: 100, rarity: 2 },
+        { id: "EB4", name: {en: "Atmosphere", cn: "氛围采样"}, desc: {en: "Gain 30. +5% per prior [Empty Slot].", cn: "触发时获得 30 Groove。<br>触发前 每出现 1 [空拍]，自身 Groove +5%。"}, len: 4, cpu: 3, base: 30, type: "score", color: "#ffd54f", price: 150, rarity: 3 },
+        { id: "EB5", name: {en: "Time Stretch", cn: "时间拉伸"}, desc: {en: "Passive: 1 [Empty Slot] counts as 2.", cn: "持有此道具时：<br>全场每 1 [空拍] 将被视为 2 [空拍]。"}, len: 8, cpu: 4, base: 0, type: "engine", color: "#ba68c8", price: 150, rarity: 3 },
+        { id: "EB6", name: {en: "Pad", cn: "铺底音色"}, desc: {en: "Gain 30. +5% per global [Empty Slot].", cn: "持续期间获得 30 Groove。<br>持续期间 全场每存在 1 [空拍]，自身 Groove +5%。"}, len: 8, cpu: 2, base: 30, type: "score", color: "#ffca28", price: 100, rarity: 2 },
+        { id: "NG1", name: {en: "Viral Hit", cn: "网红单曲"}, desc: {en: "Gain 30. Sold: Discount based on uses.", cn: "触发时获得 30 Groove。<br>离场: 卖出此道具时，基于其累计上场次数，立即 使商店所有道具打折。"}, len: 8, cpu: 1, base: 30, type: "score", color: "#cfd8dc", price: 75, rarity: 1 },
+        { id: "NG2", name: {en: "Layering", cn: "叠层"}, desc: {en: "Gain 20. If [Sync]: +10.", cn: "触发时获得 20 Groove。<br>若有其他道具 [同步] 触发，额外获得 10 Groove。"}, len: 4, cpu: 1, base: 20, type: "score", color: "#b0bec5", price: 75, rarity: 1 },
+        { id: "NG3", name: {en: "Solo Fader", cn: "独奏推子"}, desc: {en: "[Same Track] Prev/Next +35%. If no [Sync], +35% more.", cn: "[同轨] 使 前一个 和 下一个 道具 Groove +35%。<br>若触发时 无 其他道具 [同步] 触发，该增幅效果额外 +35%。"}, len: 2, cpu: 1, base: 0, type: "support", color: "#90a4ae", price: 100, rarity: 2 },
+        { id: "NG4", name: {en: "Noise Gate", cn: "降噪门"}, desc: {en: "[Consume]: Halve [Sync]. Gain (40 + Consumed) x 1.5.", cn: "[吞噬]: 使所有 [同步] 道具的 Groove 减半。<br>自身获得 Groove = (40 + [吞噬] 的数值) x 1.5。"}, len: 4, cpu: 2, base: 40, type: "score", color: "#78909c", price: 150, rarity: 3 }
     ];
-    
-    // --- Config ---
+
+    const TYPE_MAP = { "SB1": "kick", "SB2": "hat", "SB3": "shaker", "SB4": "chord", "SB5": "bass", "EB1": "snare", "EB2": "hat", "EB3": "clap", "EB4": "tom", "EB5": "bass", "EB6": "noise", "NG1": "noise", "NG2": "kick", "NG3": "hat", "NG4": "bass" };
+
     const LEVEL_CONFIG = [
         { tracks: 2, target: 324,  reward: 200, poolAdds: ["NG1", "EB2", "EB3", "SB2", "NG3"] },
         { tracks: 2, target: 420,  reward: 250, poolAdds: ["SB3", "EB6"] },
@@ -539,44 +395,76 @@
         { tracks: 3, target: 925,  reward: 600, poolAdds: [] },
         { tracks: 3, target: 1200, reward: 0,   poolAdds: [] }
     ];
-    
-    const TYPE_MAP = { "SB1": "kick", "SB2": "hat", "SB3": "shaker", "SB4": "chord", "SB5": "bass", "EB1": "snare", "EB2": "hat", "EB3": "clap", "EB4": "tom", "EB5": "bass", "EB6": "noise", "NG1": "noise", "NG2": "kick", "NG3": "hat", "NG4": "bass" };
 
     let config = { maxCpu: 12, target: 324, activeTracks: 2 };
     let state = {
         inventory: [], placedItems: [], poolIds: [], poolEntryTimes: {}, 
         levelIndex: 0, selectedInvItem: null, shopLocked: false, isPlaying: false,
         gold: 150, cpuPurchasedRound: 0, roundBase: 10, currentShopItems: [],
-        ng1PermanentStacks: 0, lastRoundReward: 0, lives: 3,
-        lang: 'en' // Default Language
+        ng1PermanentStacks: 0, lastRoundReward: 0, lives: 3, lang: 'en'
     };
 
-    // --- State & Logic ---
+    // --- Exposed ---
+    window.toggleLanguage = toggleLanguage;
+    window.showHelpModal = showHelpModal;
+    window.closeHelpModal = closeHelpModal;
+    window.startGame = startGame;
+    window.buyCpu = buyCpu;
+    window.sellSelectedItem = sellSelectedItem;
+    window.rerollShop = rerollShop;
+    window.runPlaybackSequence = runPlaybackSequence;
+    window.skipPlayback = skipPlayback;
+    window.closeResult = closeResult;
+    window.nextLevel = nextLevel;
+    window.retryLevel = retryLevel;
+    window.openPoolConfig = openPoolConfig;
+    window.showVictory = showVictory;
+    window.showGameOver = showGameOver;
+    window.clearAllItems = clearAllItems;
+    window.showTooltip = showTooltip;
+    window.hideTooltip = hideTooltip;
+    window.debugSetGold = () => { try { const val = parseInt(document.getElementById('dbgGold').value); if(!isNaN(val)) { state.gold = val; updateUI(); } } catch(e){} };
+    window.debugSetTarget = () => { try { const val = parseInt(document.getElementById('dbgTarget').value); if(!isNaN(val)) { config.target = val; updateUI(); } } catch(e){} };
+
+    window.addEventListener('DOMContentLoaded', () => { try { initGrid(); updateAllText(); } catch(e){ console.error(e); } });
+
+    function showTooltip(e, key) {
+        const tip = document.getElementById('tooltip');
+        const defs = DEFINITIONS[state.lang];
+        if(tip && defs[key]) {
+            tip.style.display = 'block';
+            tip.style.left = (e.clientX + 10) + 'px';
+            tip.style.top = (e.clientY + 10) + 'px';
+            tip.innerHTML = `<span class="tooltip-key">[${key}]</span>${defs[key]}`;
+        }
+    }
+    function hideTooltip() { const tip = document.getElementById('tooltip'); if(tip) tip.style.display = 'none'; }
+
     function toggleLanguage() {
         state.lang = (state.lang === 'en') ? 'cn' : 'en';
         updateAllText();
     }
 
+    function showHelpModal() { document.getElementById('helpModal').style.display = 'flex'; }
+    function closeHelpModal() { document.getElementById('helpModal').style.display = 'none'; }
+
     function updateAllText() {
         const t = UI_TEXT[state.lang];
-        // Header
         document.getElementById('txtClear').innerText = t.clear;
+        document.querySelector('.btn-help').innerText = `❓ ${t.help}`;
         document.getElementById('lblCpu').innerText = t.cpu;
         document.getElementById('lblTarget').innerText = t.target;
         document.getElementById('lblFunds').innerText = t.funds;
-        // Panels
         document.getElementById('lblInventory').innerText = t.inventory;
         document.getElementById('lblShop').innerText = t.shop;
         document.getElementById('txtUpCpu').innerText = t.upCpu;
         document.getElementById('btnSellItem').innerText = t.sell;
         document.getElementById('btnReroll').innerText = `${t.reroll} (10G)`;
-        // Info
         document.getElementById('detailTitle').innerText = t.ready;
         document.getElementById('detailContent').innerHTML = t.readyDesc;
         document.getElementById('lblLevel').innerText = t.level;
         document.getElementById('lblTracks').innerText = t.tracks;
         document.getElementById('mainSubmitBtn').innerText = t.submit;
-        // Modals
         document.getElementById('txtStartMsg').innerText = t.startTitle;
         document.getElementById('btnStartGame').innerText = t.startGame;
         document.getElementById('resTitle').innerText = t.report;
@@ -593,48 +481,17 @@
         document.getElementById('txtLoseMsg').innerText = t.loseMsg;
         document.getElementById('btnRestart2').innerText = t.tryAgain;
         
-        // Refresh Lists
+        document.getElementById('lblHelpTitle').innerText = t.helpTitle;
+        document.getElementById('lblHelpControl').innerText = t.helpControlTitle;
+        document.getElementById('txtHelpControl').innerHTML = t.helpControlTxt;
+        document.getElementById('lblHelpGoal').innerText = t.helpGoalTitle;
+        document.getElementById('txtHelpGoal').innerHTML = t.helpGoalTxt;
+        
         updateInventoryUI();
         renderShopFromState();
         if(state.selectedInvItem) showDetail(state.selectedInvItem.data);
-        // If result modal is open, refresh it? (Complicated, skip for MVP)
     }
 
-    // --- Exposed ---
-    window.toggleLanguage = toggleLanguage;
-    window.startGame = startGame;
-    window.buyCpu = buyCpu;
-    window.sellSelectedItem = sellSelectedItem;
-    window.rerollShop = rerollShop;
-    window.runPlaybackSequence = runPlaybackSequence;
-    window.skipPlayback = skipPlayback;
-    window.closeResult = closeResult;
-    window.nextLevel = nextLevel;
-    window.retryLevel = retryLevel;
-    window.openPoolConfig = openPoolConfig;
-    window.showVictory = showVictory;
-    window.showGameOver = showGameOver;
-    window.clearAllItems = clearAllItems;
-    window.showTooltip = showTooltip;
-    window.hideTooltip = hideTooltip;
-    window.debugSetGold = () => { const val = parseInt(document.getElementById('dbgGold').value); if(!isNaN(val)) { state.gold = val; updateUI(); } };
-    window.debugSetTarget = () => { const val = parseInt(document.getElementById('dbgTarget').value); if(!isNaN(val)) { config.target = val; updateUI(); } };
-
-    window.addEventListener('DOMContentLoaded', () => { initGrid(); updateAllText(); });
-
-    function showTooltip(e, key) {
-        const tip = document.getElementById('tooltip');
-        const defs = DEFINITIONS[state.lang];
-        if(tip && defs[key]) {
-            tip.style.display = 'block';
-            tip.style.left = (e.clientX + 10) + 'px';
-            tip.style.top = (e.clientY + 10) + 'px';
-            tip.innerHTML = `<span class="tooltip-key">[${key}]</span>${defs[key]}`;
-        }
-    }
-    function hideTooltip() { const tip = document.getElementById('tooltip'); if(tip) tip.style.display = 'none'; }
-
-    // --- Core Logic ---
     function startGame() {
         document.getElementById('startScreen').style.display = 'none';
         const starters = ["SB1", "EB1", "NG2"];
@@ -741,7 +598,7 @@
         el.style.left = (record.start/TICKS*100) + "%";
         el.style.width = (record.data.len/TICKS*100) + "%";
         el.style.backgroundColor = record.data.color;
-        el.innerText = record.data.name[state.lang]; // i18n
+        el.innerText = record.data.name[state.lang]; 
         el.onclick = (e) => { 
             if(state.isPlaying) return; e.stopPropagation(); state.selectedInvItem = null; updateInventoryUI(); 
             document.querySelectorAll('.placed-item').forEach(x => x.classList.remove('selected-placed'));
@@ -877,27 +734,22 @@
             else if (id === "NG3") Tone.Transport.schedule(t => itemSynths.ng3.triggerAttackRelease("C5", "16n", t), start);
             else if (id === "NG4") Tone.Transport.schedule(t => itemSynths.ng4.triggerAttackRelease("16n", t), start);
         });
-
-        state.placedItems.forEach(item => {
-            const start = item.start * TICK_DURATION;
-            const duration = item.data.len * TICK_DURATION;
-            Tone.Draw.schedule(() => { if(item.el && document.body.contains(item.el)) item.el.classList.add('playing-active'); }, start);
-            Tone.Draw.schedule(() => { if(item.el && document.body.contains(item.el)) item.el.classList.remove('playing-active'); }, start + duration);
-        });
     }
 
     async function runPlaybackSequence() {
         if(state.isPlaying) return;
         state.isPlaying = true;
         isSkipping = false;
+        
         const btn = document.getElementById('mainSubmitBtn'); 
         btn.disabled = true; btn.innerText = "Running..."; 
         document.getElementById('mainContainer').classList.add('playing-lock');
         document.getElementById('skipOverlay').style.display = 'flex'; 
-        document.querySelectorAll('.placed-item').forEach(el => el.classList.remove('playing-active'));
 
         try {
             await initAudio();
+            // Clear State
+            document.querySelectorAll('.placed-item').forEach(el => el.classList.remove('playing-active'));
             Tone.Transport.stop(); Tone.Transport.cancel(); Tone.Draw.cancel(); 
             scheduleAudio(); 
             Tone.Transport.start(); 
@@ -919,7 +771,6 @@
             const realElapsed = (Date.now() - playbackStartTime) / 1000; 
             const progress = realElapsed / duration;
             if(playhead) playhead.style.left = (progress * 100) + "%";
-
             const simTime = fastForward ? progress * TOTAL_DURATION : (Tone.Transport.seconds || realElapsed);
 
             state.placedItems.forEach(item => {
@@ -989,7 +840,7 @@
             if(i === state.levelIndex) cls += " current done";
             dots += `<div class="${cls}"></div>`;
         }
-        return `<div class="status-item"><span class="status-hearts">${hearts}</span></div><div class="status-item" style="margin-left:20px;"><span>Progress:</span><div class="status-dots">${dots}</div></div>`;
+        return `<div class="status-item"><span class="status-hearts">${hearts}</span></div><div class="status-item" style="margin-left:20px;"><span>进度:</span><div class="status-dots">${dots}</div></div>`;
     }
 
     function showResult(ng1Added, totalScore) {
@@ -1061,7 +912,74 @@
     function buyCpu() { const cost = 30 + (Math.min(state.cpuPurchasedRound, 3) * state.roundBase); if(state.gold >= cost) { updateGold(-cost); config.maxCpu++; state.cpuPurchasedRound++; updateUI(); updateCPU(); } else { alert("No Gold"); } }
     function rerollShop() { if(state.isPlaying) return; const isManual = (event && event.target && event.target.id === 'btnReroll'); if (isManual) { if(state.gold < 10) { alert("No Gold"); return; } updateGold(-10); } state.currentShopItems = []; let candidates = DB.filter(i => state.poolIds.includes(i.id) && !state.inventory.some(inv => inv.id === i.id)); candidates.sort(() => Math.random() - 0.5); for(let i=0; i<4; i++) { if(candidates.length === 0) break; const rand = Math.random(); let rarityTarget = 1; if (rand > 0.6) rarityTarget = 2; if (rand > 0.9) rarityTarget = 3; let pool = candidates.filter(x => x.rarity === rarityTarget); if (pool.length === 0) pool = candidates; const itemBase = pool[0]; candidates = candidates.filter(x => x.id !== itemBase.id); const variance = Math.floor(Math.random() * 11) - 5; let finalPrice = itemBase.price + variance; const entryRound = state.poolEntryTimes[itemBase.id] || 0; const roundsInPool = state.levelIndex - entryRound; const discountChance = Math.min(0.5, 0.2 + (roundsInPool * 0.1)); let isDiscount = Math.random() < discountChance; let discountPercent = 0; if(isDiscount) { const maxOff = Math.min(0.5, 0.1 + (roundsInPool * 0.1)); const minOff = 0.1; const actualOff = minOff + Math.random() * (maxOff - minOff); finalPrice = Math.floor(finalPrice * (1 - actualOff)); discountPercent = Math.round(actualOff * 100); } state.currentShopItems.push({ data: itemBase, price: finalPrice, isDiscount: isDiscount, discountPercent: discountPercent, sold: false }); } renderShopFromState(); }
     function renderShopFromState() { const list = document.getElementById('shopList'); list.innerHTML = ''; state.currentShopItems.forEach(item => { let d = document.createElement('div'); d.className = 'shop-item'; d.onclick = () => { if(!state.isPlaying) showDetail(item.data); }; let btn = document.createElement('button'); btn.className = "btn-buy"; if (item.sold) { btn.disabled = true; btn.innerText = UI_TEXT[state.lang].purchased; } else { btn.innerHTML = `${item.price}G`; btn.onclick = (e) => { e.stopPropagation(); if(state.gold>=item.price){ updateGold(-item.price); addItemToInventory(item.data.id, item.price); item.sold=true; updateInventoryUI(); renderShopFromState(); } else { alert("No Gold"); } }; } let html = `<div class="shop-row-top"><b style="color:${item.data.color}">${item.data.name[state.lang]}</b></div><div class="shop-row-btm"><span>CPU:${item.data.cpu}</span><span>Len:${item.data.len}</span></div>`; if (item.isDiscount) html += `<div class="discount-tag">-${item.discountPercent}%</div>`; d.innerHTML = html; d.querySelector('.shop-row-top').appendChild(btn); list.appendChild(d); }); }
-    function calculateLogic() { const items = state.placedItems; const sorted = [...items].sort((a,b) => a.start - b.start); let output = sorted.map(p => ({ record: p, base: p.data.base, bonus: 0, mult: 1.0, finalMultiplier: 1.0, triggered: false, buffsReceived: [], buffsGiven: [], forceStrong: false })); let globalWeakIsStrong = false; let globalGapMult = 1; output.forEach(entry => { const d = entry.record.data; const s = entry.record.start; const isNaturalStrong = (s % 8 === 0); if (d.id === "SB5" && isNaturalStrong) { globalWeakIsStrong = true; entry.triggered = true; } if (d.id === "EB5") { globalGapMult = 2; entry.triggered = true; } }); let strongBeatCount = 0; let sb4Triggered = false; output.forEach((entry, idx) => { const p = entry.record; const d = p.data; const s = p.start; const e = s + d.len; let isStrong = (s % 8 === 0) || (globalWeakIsStrong && s % 4 === 0) || entry.forceStrong; if (isStrong && (d.id.startsWith("SB") || d.id.startsWith("NG"))) strongBeatCount++; const trackItems = output.filter(x => x.record.track === p.track); const tIdx = trackItems.indexOf(entry); const prev = tIdx > 0 ? trackItems[tIdx-1] : null; const next = tIdx < trackItems.length-1 ? trackItems[tIdx+1] : null; const concurrent = output.filter(x => x !== entry && x.record.start === s); const calcGap = (t1, t2) => Math.max(0, t2 - t1) * globalGapMult; if (d.id === "SB1") { if (isStrong) { entry.bonus += 10; entry.triggered = true; } } else if (d.id === "SB2") { if (concurrent.length > 0) concurrent.forEach(t => { t.mult += 0.5; t.buffsReceived.push({text:`[${d.name[state.lang]}] +50%`, type:d.type}); }); if (isStrong && concurrent.length > 0) { concurrent.forEach(t => { t.mult += 0.25; t.buffsReceived.push({text:`[${d.name[state.lang]}] +25%`, type:d.type}); }); entry.triggered = true; } } else if (d.id === "SB3") { if (next) { next.mult += 1.0; next.buffsReceived.push({text:`[${d.name[state.lang]}] +100%`, type:d.type}); } if (isStrong && next) { next.forceStrong = true; entry.triggered = true; } } else if (d.id === "SB4") { if (isStrong && strongBeatCount > 5 && !sb4Triggered) { sb4Triggered = true; entry.triggered = true; for (let i = idx + 1; i < output.length; i++) { const target = output[i]; const tS = target.record.start; const tIsStrong = (tS % 8 === 0) || (globalWeakIsStrong && tS % 4 === 0) || target.forceStrong; if (tIsStrong && target.record.data.type === "score") { target.finalMultiplier *= 1.5; target.buffsReceived.push({text:`[${d.name[state.lang]}] x1.5`, type:d.type}); } } } } else if (d.id === "EB1") { if (prev) { const gap = calcGap(prev.record.start + prev.record.data.len, s); if (gap >= 4) { entry.bonus += 20; entry.triggered = true; } } } else if (d.id === "EB2") { if (next) { let boost = 0.35; next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); const gap = calcGap(e, next.record.start); if (gap > 0) { let extra = Math.min(1.25, gap * 0.125); next.mult += extra; next.buffsReceived.push({text:`[${d.name[state.lang]}] +${(extra*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } } else if (d.id === "EB3") { if (concurrent.length > 0) concurrent.forEach(t => { if(t.record.data.type==="score") t.bonus += 10; }); let gapTotal = 0; if(prev) gapTotal += calcGap(prev.record.start+prev.record.data.len, s); if(next) { gapTotal += calcGap(e, next.record.start); } else { gapTotal += calcGap(e, TICKS); } if (gapTotal > 0) { let extraMult = Math.min(2.4, gapTotal * 0.075); concurrent.forEach(t => { if(t.record.data.type === "score") { t.mult += extraMult; t.buffsReceived.push({text:`[${d.name[state.lang]}] +${(extraMult*100).toFixed(1)}%`, type:d.type}); } }); entry.triggered = true; } } else if (d.id === "EB4") { let totalSpace = s * 3; let occupied = 0; items.forEach(it => { let iS = it.start; let iE = it.start + it.data.len; if (iE <= s) occupied += it.data.len; else if (iS < s) occupied += (s - iS); }); let empty = Math.max(0, totalSpace - occupied) * globalGapMult; if (empty > 0) { let boost = empty * 0.05; entry.mult += boost; entry.buffsReceived.push({text:`[${d.name[state.lang]}] +${(boost*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } else if (d.id === "EB6") { let dur = e - s; let totalSpace = dur * 3; let occupied = 0; items.forEach(it => { if (it === p) return; let iS = it.start; let iE = it.start + it.data.len; let overlap = Math.max(0, Math.min(e, iE) - Math.max(s, iS)); occupied += overlap; }); occupied += dur; let empty = Math.max(0, totalSpace - occupied) * globalGapMult; if (empty > 0) { let boost = empty * 0.05; entry.mult += boost; entry.buffsReceived.push({text:`[${d.name[state.lang]}] +${(boost*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } else if (d.id === "NG2") { if (concurrent.length > 0) { entry.bonus += 10; entry.triggered = true; } } else if (d.id === "NG3") { if (prev) { prev.mult += 0.35; prev.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (next) { next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (concurrent.length === 0) { if (prev) { prev.mult += 0.35; prev.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (next) { next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } entry.triggered = true; } } }); output.forEach(entry => { const d = entry.record.data; if (d.id === "NG4") { const s = entry.record.start; const concurrent = output.filter(x => x !== entry && x.record.start === s); let suckedScore = 0; concurrent.forEach(t => { if (t.record.data.type === "score") { let current = (t.base + t.bonus) * t.mult * t.finalMultiplier; t.finalMultiplier *= 0.5; t.buffsReceived.push({text:`[${d.name[state.lang]}] -50%`, type:d.type}); let now = (t.base + t.bonus) * t.mult * t.finalMultiplier; suckedScore += (current - now); } }); if (suckedScore > 0) { entry.bonus += 20 + (suckedScore * 1.5); entry.buffsReceived.push({text:`+${(suckedScore * 1.5).toFixed(0)}`, type:d.type}); entry.triggered = true; } } }); return output; }
+    
+    // V18.1 Logic: NG4 Fix (Base+Sucked)*1.5, EB2 125%, EB5 Global
+    function calculateLogic() { 
+        const items = state.placedItems; 
+        const sorted = [...items].sort((a,b) => a.start - b.start); 
+        let output = sorted.map(p => ({ record: p, base: p.data.base, bonus: 0, mult: 1.0, finalMultiplier: 1.0, triggered: false, buffsReceived: [], buffsGiven: [], forceStrong: false })); 
+        
+        let globalWeakIsStrong = false; 
+        let globalGapMult = 1;          
+        output.forEach(entry => { 
+            const d = entry.record.data; 
+            const s = entry.record.start; 
+            const isNaturalStrong = (s % 8 === 0); 
+            if (d.id === "SB5" && isNaturalStrong) { globalWeakIsStrong = true; entry.triggered = true; } 
+            if (d.id === "EB5") { globalGapMult = 2; entry.triggered = true; } // EB5 Global
+        }); 
+        
+        let strongBeatCount = 0; 
+        let sb4Triggered = false; 
+        output.forEach((entry, idx) => { 
+            const p = entry.record; const d = p.data; const s = p.start; const e = s + d.len; 
+            let isStrong = (s % 8 === 0) || (globalWeakIsStrong && s % 4 === 0) || entry.forceStrong; 
+            if (isStrong && (d.id.startsWith("SB") || d.id.startsWith("NG"))) strongBeatCount++; 
+            const trackItems = output.filter(x => x.record.track === p.track); 
+            const tIdx = trackItems.indexOf(entry); 
+            const prev = tIdx > 0 ? trackItems[tIdx-1] : null; 
+            const next = tIdx < trackItems.length-1 ? trackItems[tIdx+1] : null; 
+            const concurrent = output.filter(x => x !== entry && x.record.start === s); 
+            const calcGap = (t1, t2) => Math.max(0, t2 - t1) * globalGapMult; 
+            
+            if (d.id === "SB1") { if (isStrong) { entry.bonus += 10; entry.triggered = true; } } 
+            else if (d.id === "SB2") { if (concurrent.length > 0) concurrent.forEach(t => { t.mult += 0.5; t.buffsReceived.push({text:`[${d.name[state.lang]}] +50%`, type:d.type}); }); if (isStrong && concurrent.length > 0) { concurrent.forEach(t => { t.mult += 0.25; t.buffsReceived.push({text:`[${d.name[state.lang]}] +25%`, type:d.type}); }); entry.triggered = true; } } 
+            else if (d.id === "SB3") { if (next) { next.mult += 1.0; next.buffsReceived.push({text:`[${d.name[state.lang]}] +100%`, type:d.type}); } if (isStrong && next) { next.forceStrong = true; entry.triggered = true; } } 
+            else if (d.id === "SB4") { if (isStrong && strongBeatCount > 5 && !sb4Triggered) { sb4Triggered = true; entry.triggered = true; for (let i = idx + 1; i < output.length; i++) { const target = output[i]; const tS = target.record.start; const tIsStrong = (tS % 8 === 0) || (globalWeakIsStrong && tS % 4 === 0) || target.forceStrong; if (tIsStrong && target.record.data.type === "score") { target.finalMultiplier *= 1.5; target.buffsReceived.push({text:`[${d.name[state.lang]}] x1.5`, type:d.type}); } } } } 
+            else if (d.id === "EB1") { if (prev) { const gap = calcGap(prev.record.start + prev.record.data.len, s); if (gap >= 4) { entry.bonus += 20; entry.triggered = true; } } } 
+            else if (d.id === "EB2") { if (next) { let boost = 0.35; next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); const gap = calcGap(e, next.record.start); if (gap > 0) { let extra = Math.min(1.25, gap * 0.125); next.mult += extra; next.buffsReceived.push({text:`[${d.name[state.lang]}] +${(extra*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } } 
+            else if (d.id === "EB3") { if (concurrent.length > 0) concurrent.forEach(t => { if(t.record.data.type==="score") t.bonus += 10; }); let gapTotal = 0; if(prev) gapTotal += calcGap(prev.record.start+prev.record.data.len, s); if(next) { gapTotal += calcGap(e, next.record.start); } else { gapTotal += calcGap(e, TICKS); } if (gapTotal > 0) { let extraMult = Math.min(2.4, gapTotal * 0.075); concurrent.forEach(t => { if(t.record.data.type === "score") { t.mult += extraMult; t.buffsReceived.push({text:`[${d.name[state.lang]}] +${(extraMult*100).toFixed(1)}%`, type:d.type}); } }); entry.triggered = true; } } 
+            else if (d.id === "EB4") { let totalSpace = s * 3; let occupied = 0; items.forEach(it => { let iS = it.start; let iE = it.start + it.data.len; if (iE <= s) occupied += it.data.len; else if (iS < s) occupied += (s - iS); }); let empty = Math.max(0, totalSpace - occupied) * globalGapMult; if (empty > 0) { let boost = empty * 0.05; entry.mult += boost; entry.buffsReceived.push({text:`[空拍] +${(boost*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } 
+            else if (d.id === "EB6") { let dur = e - s; let totalSpace = dur * 3; let occupied = 0; items.forEach(it => { if (it === p) return; let iS = it.start; let iE = it.start + it.data.len; let overlap = Math.max(0, Math.min(e, iE) - Math.max(s, iS)); occupied += overlap; }); occupied += dur; let empty = Math.max(0, totalSpace - occupied) * globalGapMult; if (empty > 0) { let boost = empty * 0.05; entry.mult += boost; entry.buffsReceived.push({text:`[${d.name[state.lang]}] +${(boost*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } 
+            else if (d.id === "NG2") { if (concurrent.length > 0) { entry.bonus += 10; entry.triggered = true; } } 
+            else if (d.id === "NG3") { if (prev) { prev.mult += 0.35; prev.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (next) { next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (concurrent.length === 0) { if (prev) { prev.mult += 0.35; prev.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (next) { next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } entry.triggered = true; } } 
+        }); 
+        
+        output.forEach(entry => { 
+            const d = entry.record.data; 
+            if (d.id === "NG4") { 
+                const s = entry.record.start; 
+                const concurrent = output.filter(x => x !== entry && x.record.start === s); 
+                let suckedScore = 0; 
+                concurrent.forEach(t => { 
+                    if (t.record.data.type === "score") { 
+                        let current = (t.base + t.bonus) * t.mult * t.finalMultiplier; 
+                        t.finalMultiplier *= 0.5; 
+                        t.buffsReceived.push({text:`[${d.name[state.lang]}] -50%`, type:d.type}); 
+                        let now = (t.base + t.bonus) * t.mult * t.finalMultiplier; 
+                        suckedScore += (current - now); 
+                    } 
+                }); 
+                // V18.0 NG4 Fix: (Base+Sucked)*1.5
+                if (suckedScore > 0) { 
+                    entry.bonus += 20 + (suckedScore * 1.5); 
+                    entry.buffsReceived.push({text:`+${(suckedScore * 1.5).toFixed(0)}`, type:d.type}); 
+                    entry.triggered = true; 
+                } 
+            } 
+        }); 
+        return output; 
+    }
     function updateRealTimeState() { updateCPU(); const results = calculateLogic(); state.placedItems.forEach(p => { const res = results.find(r => r.record === p); p.el.classList.remove('glowing-score', 'glowing-support', 'glowing-engine'); if(res && res.triggered) { if (p.data.type === "score") p.el.classList.add('glowing-score'); else if (p.data.type === "support") p.el.classList.add('glowing-support'); else if (p.data.type === "engine") p.el.classList.add('glowing-engine'); } }); }
     function openPoolConfig() { if(state.isPlaying) return; const grid = document.getElementById('poolGrid'); grid.innerHTML = ''; DB.forEach(item => { let d = document.createElement('div'); d.className = 'card ' + (state.poolIds.includes(item.id) ? 'active' : ''); d.innerHTML = item.name[state.lang]; d.onclick = () => { if(state.poolIds.includes(item.id)) { state.poolIds = state.poolIds.filter(x=>x!==item.id); d.classList.remove('active'); } else { state.poolIds.push(item.id); d.classList.add('active'); } }; grid.appendChild(d); }); document.getElementById('poolModal').style.display = 'flex'; }
     function showDetail(item) { document.getElementById('detailTitle').innerText = item.name[state.lang]; document.getElementById('detailTitle').style.color = item.color; document.getElementById('detailMeta').innerHTML = `<span>CPU: ${item.cpu}</span><span>${state.lang==='en'?'Len':'长度'}: ${item.len}</span><span>${state.lang==='en'?'Base':'基础'}: ${item.base}</span>`; let desc = item.desc[state.lang]; if (item.id === "NG1") { desc += `<br><span style="color:#ffd700; font-weight:bold;">[${UI_TEXT[state.lang].ng1Charge}: ${state.ng1PermanentStacks}]</span>`; } for (const key in DEFINITIONS[state.lang]) { const regex = new RegExp(`\\[${key}\\]`, "g"); desc = desc.replace(regex, `<span class="tooltip-ref" onmouseenter="showTooltip(event, '${key}')" onmouseleave="hideTooltip()">[${key}]</span>`); } document.getElementById('detailContent').innerHTML = desc; }
