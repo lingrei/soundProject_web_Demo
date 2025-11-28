@@ -1,41 +1,34 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>音源项目 - MVP V18.1 (Final Polish)</title>
+    <title>Soundwave - MVP V19.0 (i18n)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        /* --- 样式 (基于 V8.3/V16.0) --- */
+        /* --- Styles (Maintained V8.3/V16.0 Standard) --- */
         :root { --bg-color: #222; --panel-color: #333; --highlight: #4caf50; --text-color: #eee; --gold-color: #ffd700; --cpu-used: #ff9800; --item-blue: #64b5f6; --border: 1px solid #555; --playhead-color: #ff5252; --lose-color: #ff5252; }
-        /* Item Type Colors */
         :root { --c-score: #ffd700; --c-support: #00e5ff; --c-engine: #d500f9; }
 
         body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         
         .container { width: 98vw; max-width: 1600px; height: 95vh; display: grid; grid-template-columns: 220px 1fr 260px; grid-template-rows: 70px 1fr 180px; gap: 8px; background: #2a2a2a; padding: 10px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 8px; }
         
-        /* Header Layout - Absolute Centering */
+        /* Header Layout */
         .header { grid-column: 1 / -1; grid-row: 1 / 2; background: var(--panel-color); border: var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; position: relative; }
         
-        /* Left: Clear Button */
-        .header-left { display: flex; align-items: center; justify-content: flex-start; min-width: 100px; z-index: 10; } 
-        .btn-clear { background: #d32f2f; color: white; border: none; padding: 8px 16px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s; white-space: nowrap; }
-        .btn-clear:hover { background: #f44336; }
+        /* Left: Language & Clear */
+        .header-left { display: flex; align-items: center; justify-content: flex-start; min-width: 100px; z-index: 10; gap: 10px; } 
+        .btn-icon { border: none; padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s; white-space: nowrap; color: white; }
+        .btn-lang { background: #555; } .btn-lang:hover { background: #666; }
+        .btn-clear { background: #d32f2f; } .btn-clear:hover { background: #f44336; }
         
-        /* Center: Stats (Absolute Positioned) */
+        /* Center: Stats (Absolute) */
         .stat-group { 
-            position: absolute; 
-            left: 50%; 
-            top: 50%; 
-            transform: translate(-50%, -50%); 
-            display: flex; 
-            gap: 20px; 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 5; 
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); 
+            display: flex; gap: 20px; align-items: center; justify-content: center; z-index: 5; 
         }
         .stat-block { display: flex; flex-direction: column; align-items: center; background: #222; padding: 5px 15px; border-radius: 8px; border: 1px solid #444; min-width: 90px; }
-        .stat-label { font-size: 10px; color: #aaa; margin-bottom: 2px; }
+        .stat-label { font-size: 10px; color: #aaa; margin-bottom: 2px; text-transform: uppercase; }
         .stat-val { font-size: 18px; font-weight: bold; color: white; }
         .gold-display { color: var(--gold-color); text-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
         
@@ -53,7 +46,7 @@
         .cpu-fill.danger { background: #f44336; }
         
         .inventory-panel { grid-column: 1 / 2; grid-row: 2 / 3; background: var(--panel-color); border: var(--border); display: flex; flex-direction: column; overflow: hidden; }
-        .panel-header { background: #222; padding: 8px; font-weight: bold; text-align: center; border-bottom: var(--border); font-size: 13px; }
+        .panel-header { background: #222; padding: 8px; font-weight: bold; text-align: center; border-bottom: var(--border); font-size: 13px; text-transform: uppercase; }
         .inventory-list { flex: 1; padding: 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
         .inv-item { background: #444; padding: 6px 8px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; border-left-width: 4px; position: relative; }
         .inv-item:hover { background: #505050; } 
@@ -82,7 +75,6 @@
         .playing-lock .grid-cell { cursor: not-allowed; }
         .placed-item.playing-active { filter: brightness(2.5) contrast(1.5) !important; box-shadow: 0 0 30px white !important; z-index: 50 !important; transform: scale(1.1); }
         
-        /* Static Glow */
         .placed-item.glowing-score { box-shadow: inset 0 0 10px var(--c-score); border: 2px solid var(--c-score); background-color: rgba(255,215,0,0.3) !important; }
         .placed-item.glowing-support { box-shadow: inset 0 0 10px var(--c-support); border: 2px solid var(--c-support); background-color: rgba(0,229,255,0.3) !important; }
         .placed-item.glowing-engine { box-shadow: inset 0 0 10px var(--c-engine); border: 2px solid var(--c-engine); background-color: rgba(213,0,249,0.3) !important; }
@@ -103,6 +95,7 @@
         .btn-trade { flex: 1; padding: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 11px; border-radius: 4px; color: white; }
         .btn-cpu { background: #2196f3; display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
         .btn-sell { background: #e53935; display: none; }
+
         .bottom-panel { grid-column: 1 / -1; grid-row: 3 / 4; display: flex; gap: 10px; padding-top: 5px; position: relative; overflow: hidden; }
         .info-box { background: var(--panel-color); border: var(--border); padding: 10px 15px; border-radius: 4px; overflow-y: auto; transition: filter 0.3s; }
         .info-left { flex: 2; border-left: 4px solid var(--highlight); } 
@@ -122,9 +115,8 @@
         .detail-meta { font-size: 11px; color: #aaa; margin-bottom: 8px; display: flex; gap: 15px; }
         .detail-desc { font-size: 13px; color: #ccc; line-height: 1.4; background: #222; padding: 8px; border-radius: 4px; }
         
-        /* Tooltip */
         .tooltip-ref { color: #4fc3f7; font-weight: bold; cursor: help; border-bottom: 1px dashed #4fc3f7; position: relative; }
-        #tooltip { position: fixed; background: #111; border: 1px solid #666; padding: 8px; border-radius: 4px; color: #eee; font-size: 12px; z-index: 9999; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); max-width: 200px; pointer-events: none; }
+        #tooltip { position: fixed; background: #111; border: 1px solid #666; padding: 8px; border-radius: 4px; color: #eee; font-size: 12px; z-index: 9999; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); max-width: 250px; pointer-events: none; }
         .tooltip-key { color: var(--highlight); font-weight: bold; margin-bottom: 4px; display: block; }
 
         .submit-btn { width: 100%; padding: 10px; background: white; color: black; font-size: 18px; font-weight: bold; border: none; border-radius: 20px; cursor: pointer; transition: transform 0.1s; margin-top: 5px; }
@@ -140,7 +132,7 @@
         table.result-table th { text-align: left; border-bottom: 1px solid #666; padding: 5px; color: #aaa; }
         table.result-table td { padding: 8px 5px; border-bottom: 1px solid #444; }
         .score-val { color: gold; font-weight: bold; }
-        /* Tags */
+        
         .buff-tag { display: inline-block; background: #222; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 4px; border: 1px solid #444; }
         .tag-score { color: var(--c-score); border-color: var(--c-score); }
         .tag-support { color: var(--c-support); border-color: var(--c-support); }
@@ -162,12 +154,13 @@
 <div class="container" id="mainContainer">
     <div class="header">
         <div class="header-left">
-            <button class="btn-clear" onclick="clearAllItems()">🗑️ CLEAR</button>
+            <button class="btn-icon btn-lang" onclick="toggleLanguage()">🌐 CN/EN</button>
+            <button class="btn-icon btn-clear" onclick="clearAllItems()">🗑️ <span id="txtClear">CLEAR</span></button>
         </div>
         
         <div class="stat-group">
             <div class="stat-block">
-                <div class="stat-label">★ CPU</div>
+                <div class="stat-label" id="lblCpu">★ CPU</div>
                 <div class="cpu-container">
                     <div class="cpu-track"><div class="cpu-fill" id="cpuBar"></div></div>
                     <div style="display:flex; justify-content:space-between; font-size:10px; color:#888;">
@@ -178,12 +171,12 @@
             </div>
 
             <div class="stat-block">
-                <div class="stat-label">目标 Groove</div>
+                <div class="stat-label" id="lblTarget">TARGET</div>
                 <div class="stat-val" id="targetText">360</div>
             </div>
 
             <div class="stat-block">
-                <div class="stat-label">资金 (G)</div>
+                <div class="stat-label" id="lblFunds">FUNDS (G)</div>
                 <div class="stat-val gold-display" id="goldText">150</div>
             </div>
         </div>
@@ -200,7 +193,7 @@
     </div>
 
     <div class="inventory-panel">
-        <div class="panel-header">库存 (Inventory)</div>
+        <div class="panel-header" id="lblInventory">INVENTORY</div>
         <div class="inventory-list" id="inventoryList"></div>
     </div>
 
@@ -210,55 +203,334 @@
     </div>
 
     <div class="shop-panel">
-        <div class="panel-header">商店 (Shop)</div>
+        <div class="panel-header" id="lblShop">SHOP</div>
         <div class="shop-list" id="shopList"></div>
         <div class="shop-controls">
             <div class="trade-area">
                 <button class="btn-trade btn-cpu" onclick="buyCpu()" id="btnBuyCpu">
-                    <span>UP CPU</span>
+                    <span id="txtUpCpu">UP CPU</span>
                     <span style="font-size:10px; color:#ddd;" id="cpuPriceText">50G</span>
                 </button>
                 <button class="btn-trade btn-sell" onclick="sellSelectedItem()" id="btnSellItem">
-                    出售 (25G)
+                    SELL
                 </button>
             </div>
-            <button class="btn-reroll" onclick="rerollShop()" id="btnReroll">刷新 (10G)</button>
+            <button class="btn-reroll" onclick="rerollShop()" id="btnReroll">REROLL (10G)</button>
         </div>
     </div>
 
     <div class="bottom-panel">
         <div id="skipOverlay" onclick="skipPlayback()">⏩ CLICK TO FAST FORWARD</div>
         <div class="info-box info-left">
-            <div class="detail-title" id="detailTitle">准备就绪</div>
+            <div class="detail-title" id="detailTitle">Ready</div>
             <div class="detail-meta" id="detailMeta"></div>
             <div class="detail-desc" id="detailContent">
-                1. V18.1 修正：全中文界面与规范化描述 <br>
-                2. UI优化：CPU居中，Debg靠右 <br>
-                3. 数值：NG4公式优化，EB2/5上限/描述修正
+                Welcome to Soundwave. <br>
+                Build your loop, hit Submit.
             </div>
         </div>
         <div class="info-box info-right">
             <div style="font-size:14px; color:#ccc; line-height:1.8;">
-                <b>当前关卡:</b> <span id="levelNum">Level 1</span><br>
-                <b>轨道数量:</b> <span id="trackNum">2</span> Tracks
+                <b id="lblLevel">Level:</b> <span id="levelNum">1</span><br>
+                <b id="lblTracks">Tracks:</b> <span id="trackNum">2</span>
             </div>
-            <button class="submit-btn" id="mainSubmitBtn" onclick="runPlaybackSequence()">Submit / 结算</button>
+            <button class="submit-btn" id="mainSubmitBtn" onclick="runPlaybackSequence()">SUBMIT</button>
         </div>
     </div>
 </div>
 
-<div class="modal" id="startScreen" style="display:flex;"><div class="modal-content" style="width: 400px;"><h1>Soundwave</h1><p style="color:#aaa; margin-bottom:30px;">音乐构筑 Roguelike MVP Demo</p><button class="submit-btn" onclick="startGame()">开始游戏</button></div></div>
-<div class="modal" id="resultModal"><div class="modal-content" style="width: 900px;"><h2 id="resTitle">结算报告</h2><div id="campaignStatusContainer" class="campaign-status-modal"></div><h3 id="resOutcome" style="font-size:28px; margin: 5px 0;"></h3><div style="display:flex; justify-content:space-around; margin-bottom:20px;"><div>目标: <span id="resTargetDisplay" style="font-size:24px;"></span></div><div>总 Groove: <span id="resTotalScore" style="font-size:32px; color:gold; font-weight:bold;"></span></div></div><div id="resTableContainer" style="max-height: 400px; overflow-y: auto; margin-bottom: 10px;"></div><div id="resRewardInfo" style="text-align:center; color:#4caf50; font-weight:bold; margin:10px 0;"></div><div style="margin-top:20px; display:flex; gap:20px; justify-content:center;"><button class="submit-btn" style="width:200px; display:none;" id="nextLevelBtn" onclick="nextLevel()">下一关</button><button class="submit-btn" style="width:200px; display:none;" id="finishGameBtn" onclick="showVictory()">加冕时刻</button><button class="submit-btn" style="width:200px; display:none; background:#d32f2f;" id="retryLevelBtn" onclick="retryLevel()">重试 (消耗生命)</button><button class="submit-btn" style="width:200px; display:none; background:#000;" id="dieBtn" onclick="showGameOver()">接受结局</button></div></div></div>
-<div class="modal" id="victoryModal"><div class="modal-content" style="width: 500px;"><h1 style="color:gold;">恭喜通关!</h1><p>你已经完成了所有6个关卡的挑战。</p><button class="submit-btn" onclick="location.reload()">再次开始</button></div></div>
-<div class="modal" id="gameOverModal"><div class="modal-content" style="width: 500px;"><h1 style="color:#ff5252;">游戏结束</h1><p>你的生命值已耗尽。</p><button class="submit-btn" onclick="location.reload()">重头再来</button></div></div>
-<div class="modal" id="poolModal"><div class="modal-content"><h2>当前池子 (Debug)</h2><div class="card-grid" id="poolGrid"></div><button class="submit-btn" onclick="document.getElementById('poolModal').style.display='none'">保存</button></div></div>
+<div class="modal" id="startScreen" style="display:flex;">
+    <div class="modal-content" style="width: 400px;">
+        <h1>Soundwave</h1>
+        <p style="color:#aaa; margin-bottom:30px;" id="txtStartMsg">Music Roguelike Deckbuilder</p>
+        <button class="submit-btn" onclick="startGame()" id="btnStartGame">START GAME</button>
+    </div>
+</div>
+
+<div class="modal" id="resultModal">
+    <div class="modal-content" style="width: 900px;">
+        <h2 id="resTitle">REPORT</h2>
+        <div id="campaignStatusContainer" class="campaign-status-modal"></div>
+        
+        <h3 id="resOutcome" style="font-size:28px; margin: 5px 0;"></h3>
+        <div style="display:flex; justify-content:space-around; margin-bottom:20px;">
+            <div><span id="lblResTarget">Target</span>: <span id="resTargetDisplay" style="font-size:24px;"></span></div>
+            <div><span id="lblResTotal">Total</span>: <span id="resTotalScore" style="font-size:32px; color:gold; font-weight:bold;"></span></div>
+        </div>
+        
+        <div id="resTableContainer" style="max-height: 400px; overflow-y: auto; margin-bottom: 10px;"></div>
+        <div id="resRewardInfo" style="text-align:center; color:#4caf50; font-weight:bold; margin:10px 0;"></div>
+
+        <div style="margin-top:20px; display:flex; gap:20px; justify-content:center;">
+            <button class="submit-btn" style="width:200px; display:none;" id="nextLevelBtn" onclick="nextLevel()">NEXT LEVEL</button>
+            <button class="submit-btn" style="width:200px; display:none;" id="finishGameBtn" onclick="showVictory()">VICTORY</button>
+            <button class="submit-btn" style="width:200px; display:none; background:#d32f2f;" id="retryLevelBtn" onclick="retryLevel()">RETRY</button>
+            <button class="submit-btn" style="width:200px; display:none; background:#000;" id="dieBtn" onclick="showGameOver()">ACCEPT FATE</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="victoryModal">
+    <div class="modal-content" style="width: 500px;">
+        <h1 style="color:gold;" id="txtWinTitle">YOU WIN!</h1>
+        <p id="txtWinMsg">You have completed all levels.</p>
+        <button class="submit-btn" onclick="location.reload()" id="btnRestart1">PLAY AGAIN</button>
+    </div>
+</div>
+
+<div class="modal" id="gameOverModal">
+    <div class="modal-content" style="width: 500px;">
+        <h1 style="color:#ff5252;" id="txtLoseTitle">GAME OVER</h1>
+        <p id="txtLoseMsg">Ran out of lives.</p>
+        <button class="submit-btn" onclick="location.reload()" id="btnRestart2">TRY AGAIN</button>
+    </div>
+</div>
 
 <script>
+    // --- Constants ---
     const TICKS = 32;
     const TOTAL_TRACKS = 3; 
     const TOTAL_DURATION = 16; 
     const TICK_DURATION = TOTAL_DURATION / TICKS;
     
+    // --- I18N Data ---
+    const UI_TEXT = {
+        en: {
+            clear: "CLEAR",
+            cpu: "★ CPU",
+            target: "TARGET",
+            funds: "FUNDS (G)",
+            inventory: "INVENTORY",
+            shop: "SHOP",
+            upCpu: "UP CPU",
+            sell: "SELL",
+            reroll: "REROLL",
+            ready: "Ready",
+            readyDesc: "1. Place items on the timeline.<br>2. Optimize placement for Groove.<br>3. Hit Submit to play.",
+            level: "Level:",
+            tracks: "Tracks:",
+            submit: "SUBMIT",
+            startTitle: "Music Roguelike Deckbuilder",
+            startGame: "START GAME",
+            report: "REPORT",
+            resTarget: "Target",
+            resTotal: "Total",
+            nextLevel: "NEXT LEVEL",
+            victory: "VICTORY",
+            retry: "RETRY",
+            acceptFate: "ACCEPT FATE",
+            youWin: "YOU WIN!",
+            winMsg: "You have completed all levels.",
+            playAgain: "PLAY AGAIN",
+            gameOver: "GAME OVER",
+            loseMsg: "Ran out of lives.",
+            tryAgain: "TRY AGAIN",
+            purchased: "SOLD",
+            outcomeWin: "SUCCESS",
+            outcomeLose: "FAILED",
+            reward: "Reward",
+            consolation: "Consolation",
+            ng1Charge: "NG1 Charge",
+            stacks: "stacks",
+            item: "Item",
+            base: "Base",
+            cond: "Cond",
+            mult: "Mult",
+            final: "Final",
+            note: "Note",
+            effect: "Effect",
+            sold: "Sold"
+        },
+        cn: {
+            clear: "清空",
+            cpu: "★ CPU",
+            target: "目标 Groove",
+            funds: "资金 (G)",
+            inventory: "库存",
+            shop: "商店",
+            upCpu: "升级 CPU",
+            sell: "出售",
+            reroll: "刷新",
+            ready: "准备就绪",
+            readyDesc: "1. 将道具放置在时间轴上。<br>2. 优化摆放以获取最大 Groove。<br>3. 点击结算开始演奏。",
+            level: "当前关卡:",
+            tracks: "轨道数量:",
+            submit: "结算",
+            startTitle: "音乐构筑 Roguelike MVP 演示",
+            startGame: "开始游戏",
+            report: "结算报告",
+            resTarget: "目标",
+            resTotal: "总分",
+            nextLevel: "下一关",
+            victory: "加冕时刻",
+            retry: "重试",
+            acceptFate: "接受结局",
+            youWin: "恭喜通关!",
+            winMsg: "你已经完成了所有挑战。",
+            playAgain: "再次开始",
+            gameOver: "游戏结束",
+            loseMsg: "你的生命值已耗尽。",
+            tryAgain: "重头再来",
+            purchased: "已购",
+            outcomeWin: "挑战成功",
+            outcomeLose: "挑战失败",
+            reward: "赏金",
+            consolation: "抚恤金",
+            ng1Charge: "NG1 充能",
+            stacks: "层",
+            item: "道具",
+            base: "基础",
+            cond: "条件",
+            mult: "倍率",
+            final: "最终",
+            note: "备注",
+            effect: "效果",
+            sold: "已售出"
+        }
+    };
+
+    const DEFINITIONS = {
+        en: {
+            "Strong Beat": "1st and 3rd beat of a bar (Tick 0, 8, 16, 24).",
+            "Weak Beat": "2nd and 4th beat of a bar.",
+            "Same Track": "Items placed on the same horizontal track.",
+            "Sync": "Items triggered at the exact same time on different tracks.",
+            "Empty Slot": "An unoccupied Grid unit on the timeline.",
+            "Consume": "Reduce target's Groove and use reduced amount for self."
+        },
+        cn: {
+            "强拍": "每小节的第1拍与第3拍 (Tick 0, 8, 16, 24)。",
+            "弱拍": "每小节的第2拍与第4拍。",
+            "同轨": "处于同一音轨上的道具。",
+            "同步": "垂直方向上，与该道具在同一时间点被触发的其他道具。",
+            "空拍": "音轨上未被占用的格子。",
+            "吞噬": "减少目标道具的分数，并将其作为自身分数的计算依据。"
+        }
+    };
+
+    const DB = [
+        { id: "SB1", 
+          name: {en: "Kick Drum", cn: "底鼓"}, 
+          desc: {
+              en: "Gain 20 Groove on trigger.<br>If placed on a [Strong Beat], gain an additional 10 Groove.",
+              cn: "触发时获得 20 Groove。<br>若放置在 [强拍] 上，额外获得 10 Groove。"
+          }, 
+          len: 4, cpu: 1, base: 20, type: "score", color: "#ffecb3", price: 75, rarity: 1 },
+        
+        { id: "SB2", 
+          name: {en: "Sidechain", cn: "侧链"}, 
+          desc: {
+              en: "Increase Groove of all [Sync] items by +50%.<br>If placed on a [Strong Beat], +25% more.",
+              cn: "使所有 [同步] 道具 Groove +50%。<br>若放置在 [强拍] 上，该增幅效果额外 +25%。"
+          },
+          len: 4, cpu: 1, base: 0, type: "support", color: "#b2ebf2", price: 75, rarity: 1 },
+
+        { id: "SB3", 
+          name: {en: "Accent", cn: "重音标记"}, 
+          desc: {
+              en: "[Same Track] Next item Groove +100%.<br>If on [Strong Beat], Next item counts as on [Strong Beat].",
+              cn: "[同轨] 使 下一个 道具 Groove +100%。<br>若放置在 [强拍] 上，下一个 道具将被视为 在[强拍]触发。"
+          },
+          len: 4, cpu: 2, base: 0, type: "support", color: "#80deea", price: 100, rarity: 2 },
+
+        { id: "SB4", 
+          name: {en: "Master Clock", cn: "主时钟"}, 
+          desc: {
+              en: "If 5+ [Strong Beat] triggered before: Subsequent [Strong Beat] items Groove x 1.5.",
+              cn: "若 触发前 已触发至少 5次 [强拍] 效果：<br>后续 触发的所有 [强拍] 道具 Groove x 1.5。"
+          },
+          len: 4, cpu: 4, base: 0, type: "engine", color: "#e1bee7", price: 150, rarity: 3 },
+
+        { id: "SB5", 
+          name: {en: "Quantizer", cn: "量化器"}, 
+          desc: {
+              en: "If placed on [Strong Beat], all [Weak Beat] spots count as [Strong Beat].",
+              cn: "若放置在 [强拍] 上，全场所有的 [弱拍] 均被视为 [强拍]。"
+          },
+          len: 8, cpu: 4, base: 0, type: "engine", color: "#ce93d8", price: 150, rarity: 3 },
+
+        { id: "EB1", 
+          name: {en: "Rest Note", cn: "休止符"}, 
+          desc: {
+              en: "Gain 14 Groove. If [Same Track] prev item gap ≥ 4 [Empty Slot], +20 Groove.",
+              cn: "触发时获得 14 Groove。<br>若 [同轨]前一个 道具与自身间隔 ≥ 4 [空拍]，额外获得 20 Groove。"
+          },
+          len: 2, cpu: 1, base: 14, type: "score", color: "#ffe082", price: 75, rarity: 1 },
+
+        { id: "EB2", 
+          name: {en: "Pre-Delay", cn: "预延时"}, 
+          desc: {
+              en: "[Same Track] Next item +35%. +12.5% per [Empty Slot] gap (Max 125%).",
+              cn: "[同轨] 使 下一个 道具 Groove +35%。<br>自身与下一个道具每间隔 1 [空拍]，该增幅效果 +12.5%（上限125%）。"
+          },
+          len: 2, cpu: 1, base: 0, type: "support", color: "#4dd0e1", price: 75, rarity: 1 },
+
+        { id: "EB3", 
+          name: {en: "Isolation Booth", cn: "隔离室"}, 
+          desc: {
+              en: "[Sync] items +10. +7.5% per [Empty Slot] gap to neighbors (Max 240%).",
+              cn: "使所有 [同步] 道具 Groove +10。<br>自身 每与 [同轨] 前后道具间隔 1 [空拍]，使 [同步] 道具的 Groove +7.5%（上限240%）。"
+          },
+          len: 4, cpu: 2, base: 0, type: "support", color: "#00bcd4", price: 100, rarity: 2 },
+
+        { id: "EB4", 
+          name: {en: "Atmosphere", cn: "氛围采样"}, 
+          desc: {
+              en: "Gain 30 Groove. +5% for every [Empty Slot] before trigger.",
+              cn: "触发时获得 30 Groove。<br>触发前 每出现 1 [空拍]，自身 Groove +5%。"
+          },
+          len: 4, cpu: 3, base: 30, type: "score", color: "#ffd54f", price: 150, rarity: 3 },
+
+        { id: "EB5", 
+          name: {en: "Time Stretch", cn: "时间拉伸"}, 
+          desc: {
+              en: "Passive: 1 [Empty Slot] counts as 2 [Empty Slot] for all effects.",
+              cn: "持有此道具时：<br>全场每 1 [空拍] 将被视为 2 [空拍]。"
+          },
+          len: 8, cpu: 4, base: 0, type: "engine", color: "#ba68c8", price: 150, rarity: 3 },
+
+        { id: "EB6", 
+          name: {en: "Pad", cn: "铺底音色"}, 
+          desc: {
+              en: "Gain 30 Groove. +5% for every [Empty Slot] currently on timeline.",
+              cn: "持续期间获得 30 Groove。<br>持续期间 全场每存在 1 [空拍]，自身 Groove +5%。"
+          },
+          len: 8, cpu: 2, base: 30, type: "score", color: "#ffca28", price: 100, rarity: 2 },
+
+        { id: "NG1", 
+          name: {en: "Viral Hit", cn: "网红单曲"}, 
+          desc: {
+              en: "Gain 30 Groove. On Sold: Discount shop based on times played.",
+              cn: "触发时获得 30 Groove。<br>离场: 卖出此道具时，基于其累计上场次数，立即 使商店所有道具打折。"
+          },
+          len: 8, cpu: 1, base: 30, type: "score", color: "#cfd8dc", price: 75, rarity: 1 },
+
+        { id: "NG2", 
+          name: {en: "Layering", cn: "叠层"}, 
+          desc: {
+              en: "Gain 20 Groove. If [Sync] with others, +10 Groove.",
+              cn: "触发时获得 20 Groove。<br>若有其他道具 [同步] 触发，额外获得 10 Groove。"
+          },
+          len: 4, cpu: 1, base: 20, type: "score", color: "#b0bec5", price: 75, rarity: 1 },
+
+        { id: "NG3", 
+          name: {en: "Solo Fader", cn: "独奏推子"}, 
+          desc: {
+              en: "[Same Track] Prev/Next +35%. If no [Sync] items, +35% more.",
+              cn: "[同轨] 使 前一个 和 下一个 道具 Groove +35%。<br>若触发时 无 其他道具 [同步] 触发，该增幅效果额外 +35%。"
+          },
+          len: 2, cpu: 1, base: 0, type: "support", color: "#90a4ae", price: 100, rarity: 2 },
+
+        { id: "NG4", 
+          name: {en: "Noise Gate", cn: "降噪门"}, 
+          desc: {
+              en: "[Consume]: Halve Groove of [Sync] items. Gain (40 + Consumed) x 1.5.",
+              cn: "[吞噬]: 使所有 [同步] 道具的 Groove 减半。<br>自身获得 Groove = (40 + [吞噬] 的数值) x 1.5。"
+          },
+          len: 4, cpu: 2, base: 40, type: "score", color: "#78909c", price: 150, rarity: 3 }
+    ];
+    
+    // --- Config ---
     const LEVEL_CONFIG = [
         { tracks: 2, target: 324,  reward: 200, poolAdds: ["NG1", "EB2", "EB3", "SB2", "NG3"] },
         { tracks: 2, target: 420,  reward: 250, poolAdds: ["SB3", "EB6"] },
@@ -267,52 +539,69 @@
         { tracks: 3, target: 925,  reward: 600, poolAdds: [] },
         { tracks: 3, target: 1200, reward: 0,   poolAdds: [] }
     ];
+    
+    const TYPE_MAP = { "SB1": "kick", "SB2": "hat", "SB3": "shaker", "SB4": "chord", "SB5": "bass", "EB1": "snare", "EB2": "hat", "EB3": "clap", "EB4": "tom", "EB5": "bass", "EB6": "noise", "NG1": "noise", "NG2": "kick", "NG3": "hat", "NG4": "bass" };
 
     let config = { maxCpu: 12, target: 324, activeTracks: 2 };
     let state = {
         inventory: [], placedItems: [], poolIds: [], poolEntryTimes: {}, 
         levelIndex: 0, selectedInvItem: null, shopLocked: false, isPlaying: false,
         gold: 150, cpuPurchasedRound: 0, roundBase: 10, currentShopItems: [],
-        ng1PermanentStacks: 0, lastRoundReward: 0, lives: 3
+        ng1PermanentStacks: 0, lastRoundReward: 0, lives: 3,
+        lang: 'en' // Default Language
     };
 
-    // V18.1 Updated Descriptions & Specs
-    const DB = [
-        { id: "SB1", name: "底鼓", len: 4, cpu: 1, base: 20, type: "score", color: "#ffecb3", price: 75, rarity: 1, desc: "触发时获得 20 Groove。<br>若放置在 [强拍] 上，额外获得 10 Groove。" },
-        { id: "SB2", name: "侧链", len: 4, cpu: 1, base: 0, type: "support", color: "#b2ebf2", price: 75, rarity: 1, desc: "使所有 [同步] 道具 Groove +50%。<br>若放置在 [强拍] 上，该增幅效果额外 +25%。" },
-        { id: "SB3", name: "重音标记", len: 4, cpu: 2, base: 0, type: "support", color: "#80deea", price: 100, rarity: 2, desc: "[同轨] 使 下一个 道具 Groove +100%。<br>若放置在 [强拍] 上，下一个 道具将被视为 在[强拍]触发。" },
-        { id: "SB4", name: "主时钟", len: 4, cpu: 4, base: 0, type: "engine", color: "#e1bee7", price: 150, rarity: 3, desc: "若 触发前 已触发至少 5次 [强拍] 效果：<br>后续 触发的所有 [强拍] 道具 Groove x 1.5。" },
-        { id: "SB5", name: "量化器", len: 8, cpu: 4, base: 0, type: "engine", color: "#ce93d8", price: 150, rarity: 3, desc: "若放置在 [强拍] 上，全场所有的 [弱拍] 均被视为 [强拍]。" },
-        { id: "EB1", name: "休止符", len: 2, cpu: 1, base: 14, type: "score", color: "#ffe082", price: 75, rarity: 1, desc: "触发时获得 14 Groove。<br>若 [同轨]前一个 道具与自身间隔 ≥ 4 [空拍]，额外获得 20 Groove。" },
-        { id: "EB2", name: "预延时", len: 2, cpu: 1, base: 0, type: "support", color: "#4dd0e1", price: 75, rarity: 1, desc: "[同轨] 使 下一个 道具 Groove +35%。<br>自身与下一个道具每间隔 1 [空拍]，该增幅效果 +12.5%（上限125%）。" },
-        { id: "EB3", name: "隔离室", len: 4, cpu: 2, base: 0, type: "support", color: "#00bcd4", price: 100, rarity: 2, desc: "使所有 [同步] 道具 Groove +10。<br>自身 每与 [同轨] 前后道具间隔 1 [空拍]，使 [同步] 道具的 Groove +7.5%（上限240%）。" },
-        { id: "EB4", name: "氛围采样", len: 4, cpu: 3, base: 30, type: "score", color: "#ffd54f", price: 150, rarity: 3, desc: "触发时获得 30 Groove。<br>触发前 每出现 1 [空拍]，自身 Groove +5%。" },
-        { id: "EB5", name: "时间拉伸", len: 8, cpu: 4, base: 0, type: "engine", color: "#ba68c8", price: 150, rarity: 3, desc: "计算所有 [空拍] 效果时，1 [空拍] 将被视为 2 [空拍]。" },
-        { id: "EB6", name: "铺底音色", len: 8, cpu: 2, base: 30, type: "score", color: "#ffca28", price: 100, rarity: 2, desc: "持续期间获得 30 Groove。<br>持续期间 全场每存在 1 [空拍]，自身 Groove +5%。" },
-        { id: "NG1", name: "网红单曲", len: 8, cpu: 1, base: 30, type: "score", color: "#cfd8dc", price: 75, rarity: 1, desc: "触发时获得 30 Groove。<br>离场: 卖出此道具时，基于其累计上场次数，立即 使商店所有道具打折。" },
-        { id: "NG2", name: "叠层", len: 4, cpu: 1, base: 20, type: "score", color: "#b0bec5", price: 75, rarity: 1, desc: "触发时获得 20 Groove。<br>若有其他道具 [同步] 触发，额外获得 10 Groove。" },
-        { id: "NG3", name: "独奏推子", len: 2, cpu: 1, base: 0, type: "support", color: "#90a4ae", price: 100, rarity: 2, desc: "[同轨] 使 前一个 和 下一个 道具 Groove +35%。<br>若触发时 无 其他道具 [同步] 触发，该增幅效果额外 +35%。" },
-        { id: "NG4", name: "降噪门", len: 4, cpu: 2, base: 40, type: "score", color: "#78909c", price: 150, rarity: 3, desc: "[吞噬]: 使所有 [同步] 道具的 Groove 减半。<br>自身获得 Groove = (40 + [吞噬] 的数值) x 1.5。" }
-    ];
+    // --- State & Logic ---
+    function toggleLanguage() {
+        state.lang = (state.lang === 'en') ? 'cn' : 'en';
+        updateAllText();
+    }
 
-    // V18.1 Updated Definitions
-    const DEFINITIONS = {
-        "强拍": "每小节的第1拍与第3拍。",
-        "弱拍": "每小节的第2拍与第4拍。",
-        "同轨": "处于同一音轨上的道具。",
-        "同步": "垂直方向上，与该道具在同一时间点被触发的其他道具。",
-        "格": "DAW中最小的空间单位。1拍 = 4格。",
-        "空拍": "音轨上未被占用的格子。",
-        "吞噬": "减少目标道具的分数，并将其作为自身分数的计算依据。"
-    };
+    function updateAllText() {
+        const t = UI_TEXT[state.lang];
+        // Header
+        document.getElementById('txtClear').innerText = t.clear;
+        document.getElementById('lblCpu').innerText = t.cpu;
+        document.getElementById('lblTarget').innerText = t.target;
+        document.getElementById('lblFunds').innerText = t.funds;
+        // Panels
+        document.getElementById('lblInventory').innerText = t.inventory;
+        document.getElementById('lblShop').innerText = t.shop;
+        document.getElementById('txtUpCpu').innerText = t.upCpu;
+        document.getElementById('btnSellItem').innerText = t.sell;
+        document.getElementById('btnReroll').innerText = `${t.reroll} (10G)`;
+        // Info
+        document.getElementById('detailTitle').innerText = t.ready;
+        document.getElementById('detailContent').innerHTML = t.readyDesc;
+        document.getElementById('lblLevel').innerText = t.level;
+        document.getElementById('lblTracks').innerText = t.tracks;
+        document.getElementById('mainSubmitBtn').innerText = t.submit;
+        // Modals
+        document.getElementById('txtStartMsg').innerText = t.startTitle;
+        document.getElementById('btnStartGame').innerText = t.startGame;
+        document.getElementById('resTitle').innerText = t.report;
+        document.getElementById('lblResTarget').innerText = t.resTarget;
+        document.getElementById('lblResTotal').innerText = t.resTotal;
+        document.getElementById('nextLevelBtn').innerText = t.nextLevel;
+        document.getElementById('finishGameBtn').innerText = t.victory;
+        document.getElementById('retryLevelBtn').innerText = t.retry;
+        document.getElementById('dieBtn').innerText = t.acceptFate;
+        document.getElementById('txtWinTitle').innerText = t.youWin;
+        document.getElementById('txtWinMsg').innerText = t.winMsg;
+        document.getElementById('btnRestart1').innerText = t.playAgain;
+        document.getElementById('txtLoseTitle').innerText = t.gameOver;
+        document.getElementById('txtLoseMsg').innerText = t.loseMsg;
+        document.getElementById('btnRestart2').innerText = t.tryAgain;
+        
+        // Refresh Lists
+        updateInventoryUI();
+        renderShopFromState();
+        if(state.selectedInvItem) showDetail(state.selectedInvItem.data);
+        // If result modal is open, refresh it? (Complicated, skip for MVP)
+    }
 
-    const TYPE_MAP = {
-        "SB1": "kick", "SB2": "hat", "SB3": "shaker", "SB4": "chord", "SB5": "bass",
-        "EB1": "snare", "EB2": "hat", "EB3": "clap", "EB4": "tom", "EB5": "bass", "EB6": "noise",
-        "NG1": "noise", "NG2": "kick", "NG3": "hat", "NG4": "bass"
-    };
-
-    // --- Global Exposure ---
+    // --- Exposed ---
+    window.toggleLanguage = toggleLanguage;
     window.startGame = startGame;
     window.buyCpu = buyCpu;
     window.sellSelectedItem = sellSelectedItem;
@@ -331,30 +620,25 @@
     window.debugSetGold = () => { const val = parseInt(document.getElementById('dbgGold').value); if(!isNaN(val)) { state.gold = val; updateUI(); } };
     window.debugSetTarget = () => { const val = parseInt(document.getElementById('dbgTarget').value); if(!isNaN(val)) { config.target = val; updateUI(); } };
 
-    window.addEventListener('DOMContentLoaded', () => { initGrid(); });
+    window.addEventListener('DOMContentLoaded', () => { initGrid(); updateAllText(); });
 
     function showTooltip(e, key) {
         const tip = document.getElementById('tooltip');
-        if(tip) {
+        const defs = DEFINITIONS[state.lang];
+        if(tip && defs[key]) {
             tip.style.display = 'block';
             tip.style.left = (e.clientX + 10) + 'px';
             tip.style.top = (e.clientY + 10) + 'px';
-            tip.innerHTML = `<span class="tooltip-key">[${key}]</span>${DEFINITIONS[key] || ""}`;
+            tip.innerHTML = `<span class="tooltip-key">[${key}]</span>${defs[key]}`;
         }
     }
-    
-    function hideTooltip() {
-        const tip = document.getElementById('tooltip');
-        if(tip) tip.style.display = 'none';
-    }
+    function hideTooltip() { const tip = document.getElementById('tooltip'); if(tip) tip.style.display = 'none'; }
 
-    // --- Logic ---
+    // --- Core Logic ---
     function startGame() {
         document.getElementById('startScreen').style.display = 'none';
         const starters = ["SB1", "EB1", "NG2"];
-        state.inventory = [];
-        state.ng1PermanentStacks = 0; 
-        state.lives = 3;
+        state.inventory = []; state.ng1PermanentStacks = 0; state.lives = 3;
         starters.forEach(id => addItemToInventory(id, 0)); 
         config.maxCpu = 12;
         applyLevelConfig(0);
@@ -387,7 +671,7 @@
     }
 
     function updateUI() {
-        document.getElementById('levelNum').innerText = `Level ${state.levelIndex + 1}`;
+        document.getElementById('levelNum').innerText = `${state.levelIndex + 1}`;
         document.getElementById('trackNum').innerText = config.activeTracks;
         document.getElementById('maxCpuText').innerText = `Max: ${config.maxCpu}`;
         document.getElementById('targetText').innerText = config.target;
@@ -411,11 +695,7 @@
             for(let i=0; i<TOTAL_TRACKS; i++) { 
                 let tr = document.createElement('div'); tr.className = 'track'; 
                 if (i >= config.activeTracks) tr.classList.add('locked'); 
-                for(let t=0; t<TICKS; t++) { 
-                    let c = document.createElement('div'); c.className = 'grid-cell'; 
-                    c.onclick = () => tryPlaceItem(i, t); 
-                    tr.appendChild(c); 
-                } 
+                for(let t=0; t<TICKS; t++) { let c = document.createElement('div'); c.className = 'grid-cell'; c.onclick = () => tryPlaceItem(i, t); tr.appendChild(c); } 
                 ta.appendChild(tr); 
             }
         }
@@ -423,11 +703,11 @@
 
     function tryPlaceItem(trackIdx, tick) { 
         if(state.isPlaying) return; 
-        if (trackIdx >= config.activeTracks) { alert("该轨道未解锁!"); return; } 
+        if (trackIdx >= config.activeTracks) { alert("Locked!"); return; } 
         if(!state.selectedInvItem) return; 
         const item = state.selectedInvItem; 
         const usedCpu = state.placedItems.reduce((a,b)=>a+b.data.cpu, 0); 
-        if(usedCpu + item.data.cpu > config.maxCpu) { alert("CPU 不足!"); return; } 
+        if(usedCpu + item.data.cpu > config.maxCpu) { alert("No CPU!"); return; } 
         if(tick + item.data.len > TICKS) return; 
         const collision = state.placedItems.some(p => p.track === trackIdx && !(tick >= p.start + p.data.len || tick + item.data.len <= p.start)); 
         if(collision) return; 
@@ -438,7 +718,7 @@
 
     function clearAllItems() {
         if(state.isPlaying) return;
-        if(!confirm("确定清空当前构筑吗？(道具会返回库存)")) return;
+        if(!confirm("Clear all items?")) return;
         state.placedItems = [];
         restorePlacedItems();
     }
@@ -461,24 +741,14 @@
         el.style.left = (record.start/TICKS*100) + "%";
         el.style.width = (record.data.len/TICKS*100) + "%";
         el.style.backgroundColor = record.data.color;
-        el.innerText = record.data.name;
+        el.innerText = record.data.name[state.lang]; // i18n
         el.onclick = (e) => { 
-            if(state.isPlaying) return;
-            e.stopPropagation();
-            state.selectedInvItem = null;
-            updateInventoryUI(); 
+            if(state.isPlaying) return; e.stopPropagation(); state.selectedInvItem = null; updateInventoryUI(); 
             document.querySelectorAll('.placed-item').forEach(x => x.classList.remove('selected-placed'));
-            el.classList.add('selected-placed');
-            showDetail(record.data);
+            el.classList.add('selected-placed'); showDetail(record.data);
             document.getElementById('btnSellItem').style.display = 'none';
         };
-        el.oncontextmenu = (e) => {
-            if(state.isPlaying) return;
-            e.preventDefault();
-            el.remove();
-            state.placedItems = state.placedItems.filter(x => x !== record);
-            updateRealTimeState(); 
-        };
+        el.oncontextmenu = (e) => { if(state.isPlaying) return; e.preventDefault(); el.remove(); state.placedItems = state.placedItems.filter(x => x !== record); updateRealTimeState(); };
         parent.appendChild(el);
         record.el = el;
     }
@@ -486,20 +756,17 @@
     function updateInventoryUI() {
         const list = document.getElementById('inventoryList'); list.innerHTML = ''; 
         state.inventory.forEach(item => { 
-            let d = document.createElement('div'); d.className = 'inv-item'; 
-            d.style.borderLeftColor = item.data.color; 
+            let d = document.createElement('div'); d.className = 'inv-item'; d.style.borderLeftColor = item.data.color; 
             if(state.selectedInvItem === item) d.classList.add('selected'); 
             if(state.isPlaying) d.classList.add('disabled'); 
-            d.innerHTML = `<b style="color:${item.data.color}">${item.data.name}</b><div class="inv-meta"><span>CPU:${item.data.cpu}</span><span>Len:${item.data.len}</span></div>`; 
+            d.innerHTML = `<b style="color:${item.data.color}">${item.data.name[state.lang]}</b><div class="inv-meta"><span>CPU:${item.data.cpu}</span><span>Len:${item.data.len}</span></div>`; 
             d.onclick = () => { 
-                if(state.isPlaying) return; 
-                state.selectedInvItem = (state.selectedInvItem === item) ? null : item; 
-                updateInventoryUI(); 
-                showDetail(item.data);
+                if(state.isPlaying) return; state.selectedInvItem = (state.selectedInvItem === item) ? null : item; 
+                updateInventoryUI(); showDetail(item.data);
                 const btnSell = document.getElementById('btnSellItem');
                 if (state.selectedInvItem) {
                     const sellPrice = item.boughtPrice === 0 ? 25 : Math.floor(item.boughtPrice * 0.25);
-                    btnSell.innerText = `出售 (${sellPrice}G)`;
+                    btnSell.innerText = `${UI_TEXT[state.lang].sell} (${sellPrice}G)`;
                     btnSell.style.display = 'block';
                 } else { btnSell.style.display = 'none'; }
             }; 
@@ -507,7 +774,7 @@
         });
     }
 
-    // --- Audio V13.0 ---
+    // --- Audio ---
     let visualInterval = null;
     let playbackStartTime = 0;
     let playbackTimer = null; 
@@ -519,7 +786,6 @@
     async function initAudio() {
         if(audioInitialized) return;
         await Tone.start();
-        
         bgPlayer = new Tone.Player({ url: "race_main_loop.mp3", fadeOut: 0.05 }).toDestination();
         losePlayer = new Tone.Player({ url: "race_lose_loop_120bpm.mp3", fadeOut: 0.05, volume: -3 }).toDestination();
         
@@ -581,16 +847,10 @@
         const player = (state.lives === 1) ? losePlayer : bgPlayer;
         const other = (state.lives === 1) ? bgPlayer : losePlayer;
         if(other.state==="started") other.stop();
-        
         const offset = configureBgmSegment();
 
-        if(player.loaded) {
-             Tone.Transport.schedule((t) => {
-                 player.start(t, offset).stop(t + TOTAL_DURATION);
-             }, 0);
-        } else {
-             fallbackLoop.start(0).stop(TOTAL_DURATION);
-        }
+        if(player.loaded) { Tone.Transport.schedule((t) => { player.start(t, offset).stop(t + TOTAL_DURATION); }, 0); } 
+        else { fallbackLoop.start(0).stop(TOTAL_DURATION); }
 
         effects.filter.frequency.value = 20000;
         effects.crusher.bits.value = 16;
@@ -604,27 +864,25 @@
             if (id === "SB1") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.sb1.triggerAttackRelease("C2", "8n", t), start+(p*0.5)));
             else if (id === "SB2") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.sb2.triggerAttackRelease("32n", t, 0.3), start+(p*0.5)));
             else if (id === "SB3") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.sb3.triggerAttackRelease("16n", t), start+(p*0.5)));
-            else if (id === "SB4") {
-                Tone.Transport.schedule(t => effects.filter.frequency.rampTo(400, 0.2, t), start);
-                Tone.Transport.schedule(t => effects.filter.frequency.rampTo(20000, 0.2, t), start + duration);
-            }
-            else if (id === "SB5") {
-                Tone.Transport.schedule(t => effects.phaser.wet.rampTo(1, 0.2, t), start);
-                Tone.Transport.schedule(t => effects.phaser.wet.rampTo(0, 0.2, t), start + duration);
-            }
+            else if (id === "SB4") { Tone.Transport.schedule(t => effects.filter.frequency.rampTo(400, 0.2, t), start); Tone.Transport.schedule(t => effects.filter.frequency.rampTo(20000, 0.2, t), start + duration); }
+            else if (id === "SB5") { Tone.Transport.schedule(t => effects.phaser.wet.rampTo(1, 0.2, t), start); Tone.Transport.schedule(t => effects.phaser.wet.rampTo(0, 0.2, t), start + duration); }
             else if (id === "EB1") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.eb1.triggerAttackRelease("8n", t), start+(p*0.5)));
             else if (id === "EB2") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.eb2.triggerAttackRelease("32n", t), start+(p*0.5)));
             else if (id === "EB3") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.eb3.triggerAttackRelease("16n", t), start+(p*0.5)));
             else if (id === "EB4") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.eb4.triggerAttackRelease("G2", "8n", t), start+(p*0.5)));
-            else if (id === "EB5") {
-                Tone.Transport.schedule(t => effects.crusher.bits.rampTo(4, 0.1, t), start);
-                Tone.Transport.schedule(t => effects.crusher.bits.rampTo(16, 0.1, t), start + duration);
-            }
+            else if (id === "EB5") { Tone.Transport.schedule(t => effects.crusher.bits.rampTo(4, 0.1, t), start); Tone.Transport.schedule(t => effects.crusher.bits.rampTo(16, 0.1, t), start + duration); }
             else if (id === "EB6") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.eb6.triggerAttackRelease("C5", "32n", t), start+(p*0.5)));
             else if (id === "NG1") Tone.Transport.schedule(t => itemSynths.ng1.triggerAttackRelease(duration, t), start); 
             else if (id === "NG2") getRhythm(item.data.len).forEach(p => Tone.Transport.schedule(t => itemSynths.ng2.triggerAttackRelease("16n", t), start+(p*0.5)));
             else if (id === "NG3") Tone.Transport.schedule(t => itemSynths.ng3.triggerAttackRelease("C5", "16n", t), start);
             else if (id === "NG4") Tone.Transport.schedule(t => itemSynths.ng4.triggerAttackRelease("16n", t), start);
+        });
+
+        state.placedItems.forEach(item => {
+            const start = item.start * TICK_DURATION;
+            const duration = item.data.len * TICK_DURATION;
+            Tone.Draw.schedule(() => { if(item.el && document.body.contains(item.el)) item.el.classList.add('playing-active'); }, start);
+            Tone.Draw.schedule(() => { if(item.el && document.body.contains(item.el)) item.el.classList.remove('playing-active'); }, start + duration);
         });
     }
 
@@ -632,19 +890,17 @@
         if(state.isPlaying) return;
         state.isPlaying = true;
         isSkipping = false;
-        
         const btn = document.getElementById('mainSubmitBtn'); 
         btn.disabled = true; btn.innerText = "Running..."; 
         document.getElementById('mainContainer').classList.add('playing-lock');
         document.getElementById('skipOverlay').style.display = 'flex'; 
+        document.querySelectorAll('.placed-item').forEach(el => el.classList.remove('playing-active'));
 
         try {
             await initAudio();
             Tone.Transport.stop(); Tone.Transport.cancel(); Tone.Draw.cancel(); 
-            
             scheduleAudio(); 
             Tone.Transport.start(); 
-            
         } catch(e) { console.log("Audio error", e); }
 
         startVisualEngine(false);
@@ -657,13 +913,11 @@
         const playhead = document.getElementById('playhead');
         if(playhead) { playhead.style.display = 'block'; playhead.style.left = '0%'; }
         if (visualInterval) clearInterval(visualInterval);
-
         const duration = fastForward ? 0.8 : TOTAL_DURATION; 
 
         visualInterval = setInterval(() => {
             const realElapsed = (Date.now() - playbackStartTime) / 1000; 
             const progress = realElapsed / duration;
-            
             if(playhead) playhead.style.left = (progress * 100) + "%";
 
             const simTime = fastForward ? progress * TOTAL_DURATION : (Tone.Transport.seconds || realElapsed);
@@ -690,36 +944,31 @@
     function skipPlayback() {
         if (isSkipping) return;
         isSkipping = true;
-        
-        Tone.Transport.stop(); 
-        Tone.Transport.cancel(); 
+        Tone.Transport.stop(); Tone.Transport.cancel(); 
         if(bgPlayer) { bgPlayer.stop(); bgPlayer.disconnect(); }
         if(losePlayer) { losePlayer.stop(); losePlayer.disconnect(); }
         if(fallbackLoop) fallbackLoop.stop();
         Tone.Draw.cancel(); 
-
         if (playbackTimer) clearTimeout(playbackTimer);
         try { const noise = new Tone.Noise("pink").toDestination(); noise.start(); noise.stop("+0.8"); } catch(e){}
         startVisualEngine(true);
     }
 
     function finishPlayback() {
-        Tone.Transport.stop();
-        Tone.Transport.cancel();
+        Tone.Transport.stop(); Tone.Transport.cancel();
         if(bgPlayer) { bgPlayer.stop(); try{bgPlayer.connect(effects.filter);}catch(e){} }
         if(losePlayer) { losePlayer.stop(); try{losePlayer.connect(effects.filter);}catch(e){} }
         if(fallbackLoop) fallbackLoop.stop();
-        
         if (visualInterval) clearInterval(visualInterval);
+        
         document.querySelectorAll('.placed-item').forEach(el => el.classList.remove('playing-active'));
         const playhead = document.getElementById('playhead');
         if(playhead) playhead.style.display = 'none';
         document.getElementById('skipOverlay').style.display = 'none';
-        
         state.isPlaying = false; 
         document.getElementById('mainContainer').classList.remove('playing-lock'); 
         document.getElementById('mainSubmitBtn').disabled = false; 
-        document.getElementById('mainSubmitBtn').innerText = "Submit / 结算"; 
+        document.getElementById('mainSubmitBtn').innerText = UI_TEXT[state.lang].submit; 
         
         const currentNg1Count = state.placedItems.filter(p => p.data.id === "NG1").length;
         if (currentNg1Count > 0) { state.ng1PermanentStacks += currentNg1Count; }
@@ -727,7 +976,6 @@
         const results = calculateLogic();
         let totalScore = 0;
         results.forEach(r => totalScore += (r.base + r.bonus) * r.mult * r.finalMultiplier);
-        
         showResult(currentNg1Count, Math.floor(totalScore));
     }
 
@@ -741,7 +989,7 @@
             if(i === state.levelIndex) cls += " current done";
             dots += `<div class="${cls}"></div>`;
         }
-        return `<div class="status-item"><span class="status-hearts">${hearts}</span></div><div class="status-item" style="margin-left:20px;"><span>进度:</span><div class="status-dots">${dots}</div></div>`;
+        return `<div class="status-item"><span class="status-hearts">${hearts}</span></div><div class="status-item" style="margin-left:20px;"><span>Progress:</span><div class="status-dots">${dots}</div></div>`;
     }
 
     function showResult(ng1Added, totalScore) {
@@ -753,42 +1001,40 @@
         const dieBtn = document.getElementById('dieBtn');
         const info = document.getElementById('resRewardInfo');
         const statusContainer = document.getElementById('campaignStatusContainer');
+        const t = UI_TEXT[state.lang];
         
-        nextBtn.style.display = 'none';
-        finishBtn.style.display = 'none';
-        retryBtn.style.display = 'none';
-        dieBtn.style.display = 'none';
+        nextBtn.style.display = 'none'; finishBtn.style.display = 'none'; retryBtn.style.display = 'none'; dieBtn.style.display = 'none';
 
         if (!isWin) state.lives--;
         statusContainer.innerHTML = renderCampaignStatus();
         
         if(isWin) {
-            outcomeEl.innerText = "挑战成功"; outcomeEl.style.color = "var(--highlight)";
+            outcomeEl.innerText = t.outcomeWin; outcomeEl.style.color = "var(--highlight)";
             const rw = LEVEL_CONFIG[state.levelIndex].reward;
             state.pendingReward = rw;
-            info.innerText = `赏金: +${rw}G`;
+            info.innerText = `${t.reward}: +${rw}G`;
             if (state.levelIndex >= LEVEL_CONFIG.length - 1) finishBtn.style.display = "block"; 
             else nextBtn.style.display = "block";
         } else {
-            outcomeEl.innerText = "挑战失败"; outcomeEl.style.color = "var(--lose-color)";
+            outcomeEl.innerText = t.outcomeLose; outcomeEl.style.color = "var(--lose-color)";
             const rw = Math.floor(LEVEL_CONFIG[state.levelIndex].reward * 0.6);
             state.pendingReward = rw;
-            info.innerText = `抚恤金: +${rw}G`;
+            info.innerText = `${t.consolation}: +${rw}G`;
             if(state.lives <= 0) dieBtn.style.display = "block";
             else retryBtn.style.display = "block";
         }
         
         let html = `<table class="result-table"><thead><tr>
-            <th>道具</th><th>基础</th><th>条件</th><th>倍率</th><th>最终</th><th>备注</th>
+            <th>${t.item}</th><th>${t.base}</th><th>${t.cond}</th><th>${t.mult}</th><th>${t.final}</th><th>${t.note}</th>
         </tr></thead><tbody>`;
         const results = calculateLogic();
         results.forEach(r => {
             const score = Math.floor((r.base + r.bonus) * r.mult * r.finalMultiplier);
             let notesHTML = "";
-            if(r.bonus > 0) notesHTML += `<span class="buff-tag tag-${r.record.data.type}">${r.record.data.name} 效果 +${r.bonus}</span>`;
+            if(r.bonus > 0) notesHTML += `<span class="buff-tag tag-${r.record.data.type}">${r.record.data.name[state.lang]} ${t.effect} +${r.bonus}</span>`;
             if(r.buffsReceived.length > 0) notesHTML += r.buffsReceived.map(b => `<span class="buff-tag tag-${b.type}">${b.text}</span>`).join("");
             html += `<tr>
-                <td>${r.record.data.name}</td>
+                <td>${r.record.data.name[state.lang]}</td>
                 <td>${r.base}</td>
                 <td>${r.bonus.toFixed(0)}</td>
                 <td>x${(r.mult * r.finalMultiplier).toFixed(2)}</td>
@@ -796,7 +1042,7 @@
                 <td style="font-size:10px; color:#aaa;">${notesHTML}</td>
             </tr>`;
         });
-        if(ng1Added > 0) html += `<tr><td colspan="6" style="text-align:center; color:#ffd700;">NG1 充能 +${ng1Added} 层</td></tr>`;
+        if(ng1Added > 0) html += `<tr><td colspan="6" style="text-align:center; color:#ffd700;">${t.ng1Charge} +${ng1Added} ${t.stacks}</td></tr>`;
         html += `</tbody></table>`;
         
         document.getElementById('resTableContainer').innerHTML = html;
@@ -811,132 +1057,14 @@
     function nextLevel() { updateGold(state.pendingReward); const next = state.levelIndex + 1; document.getElementById('resultModal').style.display = 'none'; if(next >= LEVEL_CONFIG.length) showVictory(); else applyLevelConfig(next); }
     function retryLevel() { updateGold(state.pendingReward); document.getElementById('resultModal').style.display = 'none'; updateUI(); rerollShop(); }
     function sellSelectedItem() { if (!state.selectedInvItem) return; const item = state.selectedInvItem; if(item.id === "NG1" && state.ng1PermanentStacks > 0) { applyNG1Discount(state.ng1PermanentStacks); state.ng1PermanentStacks = 0; } state.placedItems = state.placedItems.filter(p => p.data.id !== item.id); restorePlacedItems(); const price = item.boughtPrice === 0 ? 25 : Math.floor(item.boughtPrice * 0.25); updateGold(price); state.inventory = state.inventory.filter(x => x !== item); state.selectedInvItem = null; updateInventoryUI(); document.getElementById('btnSellItem').style.display = 'none'; }
-    function applyNG1Discount(count) { const minDisc = 0.05 * count; const maxDisc = 0.10 * count; let msg = `NG1 爆发! ${count}层充能，全场骨折!`; state.currentShopItems.forEach(item => { if(!item.sold) { let extra = minDisc + Math.random() * (maxDisc - minDisc); const minPrice = Math.floor(item.data.price * 0.1); let newPrice = Math.floor(item.price * (1 - extra)); if (newPrice < minPrice) newPrice = minPrice; item.price = newPrice; item.isDiscount = true; item.discountPercent += Math.round(extra * 100); } }); alert(msg); renderShopFromState(); }
+    function applyNG1Discount(count) { const minDisc = 0.05 * count; const maxDisc = 0.10 * count; let msg = `NG1 Burst! ${count} stacks consumed!`; alert(msg); state.currentShopItems.forEach(item => { if(!item.sold) { let extra = minDisc + Math.random() * (maxDisc - minDisc); const minPrice = Math.floor(item.data.price * 0.1); let newPrice = Math.floor(item.price * (1 - extra)); if (newPrice < minPrice) newPrice = minPrice; item.price = newPrice; item.isDiscount = true; item.discountPercent += Math.round(extra * 100); } }); renderShopFromState(); }
     function buyCpu() { const cost = 30 + (Math.min(state.cpuPurchasedRound, 3) * state.roundBase); if(state.gold >= cost) { updateGold(-cost); config.maxCpu++; state.cpuPurchasedRound++; updateUI(); updateCPU(); } else { alert("No Gold"); } }
-    
-    // V16.0 Logic: Unique + Decay + Correct Discount
-    function rerollShop() { 
-        if(state.isPlaying) return; 
-        const isManual = (event && event.target && event.target.id === 'btnReroll'); 
-        if (isManual) { if(state.gold < 10) { alert("金币不足"); return; } updateGold(-10); } 
-        state.currentShopItems = []; 
-        // 1. Filter Valid Items from Pool & Remove Owned
-        let candidates = DB.filter(i => state.poolIds.includes(i.id) && !state.inventory.some(inv => inv.id === i.id)); 
-        
-        // 2. Shuffle candidates to ensure randomness when picking from same rarity
-        candidates.sort(() => Math.random() - 0.5);
-
-        for(let i=0; i<4; i++) { 
-            if(candidates.length === 0) break; 
-            const rand = Math.random(); 
-            let rarityTarget = 1; if (rand > 0.6) rarityTarget = 2; if (rand > 0.9) rarityTarget = 3; 
-            
-            // Find item in pool
-            let pool = candidates.filter(x => x.rarity === rarityTarget); 
-            if (pool.length === 0) pool = candidates; // Fallback
-            
-            const itemBase = pool[0]; // Pick first (already shuffled)
-            
-            // IMPORTANT: Remove from candidates so it doesn't show up again in this roll
-            candidates = candidates.filter(x => x.id !== itemBase.id); 
-            
-            const variance = Math.floor(Math.random() * 11) - 5; 
-            let finalPrice = itemBase.price + variance; 
-            
-            // Discount
-            const entryRound = state.poolEntryTimes[itemBase.id] || 0; 
-            const roundsInPool = state.levelIndex - entryRound; 
-            const discountChance = Math.min(0.5, 0.2 + (roundsInPool * 0.1)); 
-            let isDiscount = Math.random() < discountChance; 
-            let discountPercent = 0; 
-            if(isDiscount) { 
-                const maxOff = Math.min(0.5, 0.1 + (roundsInPool * 0.1));
-                const minOff = 0.1;
-                const actualOff = minOff + Math.random() * (maxOff - minOff);
-                finalPrice = Math.floor(finalPrice * (1 - actualOff)); 
-                discountPercent = Math.round(actualOff * 100); 
-            } 
-            state.currentShopItems.push({ data: itemBase, price: finalPrice, isDiscount: isDiscount, discountPercent: discountPercent, sold: false }); 
-        } 
-        renderShopFromState(); 
-    }
-    
-    function renderShopFromState() { const list = document.getElementById('shopList'); list.innerHTML = ''; state.currentShopItems.forEach(item => { let d = document.createElement('div'); d.className = 'shop-item'; d.onclick = () => { if(!state.isPlaying) showDetail(item.data); }; let btn = document.createElement('button'); btn.className = "btn-buy"; if (item.sold) { btn.disabled = true; btn.innerText = "已购"; } else { btn.innerHTML = `${item.price}G`; btn.onclick = (e) => { e.stopPropagation(); if(state.gold>=item.price){ updateGold(-item.price); addItemToInventory(item.data.id, item.price); item.sold=true; updateInventoryUI(); renderShopFromState(); } else { alert("No Gold"); } }; } let html = `<div class="shop-row-top"><b style="color:${item.data.color}">${item.data.name}</b></div><div class="shop-row-btm"><span>CPU:${item.data.cpu}</span><span>Len:${item.data.len}</span></div>`; if (item.isDiscount) html += `<div class="discount-tag">-${item.discountPercent}%</div>`; d.innerHTML = html; d.querySelector('.shop-row-top').appendChild(btn); list.appendChild(d); }); }
-    
-    // V18.1 Logic: NG4 Fix (Base+Sucked)*1.5, EB2 125%, EB5 Global
-    function calculateLogic() { 
-        const items = state.placedItems; 
-        const sorted = [...items].sort((a,b) => a.start - b.start); 
-        let output = sorted.map(p => ({ record: p, base: p.data.base, bonus: 0, mult: 1.0, finalMultiplier: 1.0, triggered: false, buffsReceived: [], buffsGiven: [], forceStrong: false })); 
-        
-        let globalWeakIsStrong = false; 
-        let globalGapMult = 1;          
-        output.forEach(entry => { 
-            const d = entry.record.data; 
-            const s = entry.record.start; 
-            const isNaturalStrong = (s % 8 === 0); 
-            if (d.id === "SB5" && isNaturalStrong) { globalWeakIsStrong = true; entry.triggered = true; } 
-            if (d.id === "EB5") { globalGapMult = 2; entry.triggered = true; } // EB5 Global
-        }); 
-        
-        let strongBeatCount = 0; 
-        let sb4Triggered = false; 
-        output.forEach((entry, idx) => { 
-            const p = entry.record; const d = p.data; const s = p.start; const e = s + d.len; 
-            let isStrong = (s % 8 === 0) || (globalWeakIsStrong && s % 4 === 0) || entry.forceStrong; 
-            if (isStrong && (d.id.startsWith("SB") || d.id.startsWith("NG"))) strongBeatCount++; 
-            const trackItems = output.filter(x => x.record.track === p.track); 
-            const tIdx = trackItems.indexOf(entry); 
-            const prev = tIdx > 0 ? trackItems[tIdx-1] : null; 
-            const next = tIdx < trackItems.length-1 ? trackItems[tIdx+1] : null; 
-            const concurrent = output.filter(x => x !== entry && x.record.start === s); 
-            const calcGap = (t1, t2) => Math.max(0, t2 - t1) * globalGapMult; 
-            
-            if (d.id === "SB1") { if (isStrong) { entry.bonus += 10; entry.triggered = true; } } 
-            else if (d.id === "SB2") { if (concurrent.length > 0) concurrent.forEach(t => { t.mult += 0.5; t.buffsReceived.push({text:`[${d.name}] +50%`, type:d.type}); }); if (isStrong && concurrent.length > 0) { concurrent.forEach(t => { t.mult += 0.25; t.buffsReceived.push({text:`[${d.name}强拍] +25%`, type:d.type}); }); entry.triggered = true; } } 
-            else if (d.id === "SB3") { if (next) { next.mult += 1.0; next.buffsReceived.push({text:`[${d.name}] +100%`, type:d.type}); } if (isStrong && next) { next.forceStrong = true; entry.triggered = true; } } 
-            else if (d.id === "SB4") { if (isStrong && strongBeatCount > 5 && !sb4Triggered) { sb4Triggered = true; entry.triggered = true; for (let i = idx + 1; i < output.length; i++) { const target = output[i]; const tS = target.record.start; const tIsStrong = (tS % 8 === 0) || (globalWeakIsStrong && tS % 4 === 0) || target.forceStrong; if (tIsStrong && target.record.data.type === "score") { target.finalMultiplier *= 1.5; target.buffsReceived.push({text:`[${d.name}] x1.5(独立)`, type:d.type}); } } } } 
-            else if (d.id === "EB1") { if (prev) { const gap = calcGap(prev.record.start + prev.record.data.len, s); if (gap >= 4) { entry.bonus += 20; entry.triggered = true; } } } 
-            else if (d.id === "EB2") { if (next) { let boost = 0.35; next.mult += 0.35; next.buffsReceived.push({text:`[${d.name}] +35%`, type:d.type}); const gap = calcGap(e, next.record.start); if (gap > 0) { let extra = Math.min(1.25, gap * 0.125); next.mult += extra; next.buffsReceived.push({text:`[${d.name}空拍] +${(extra*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } } 
-            else if (d.id === "EB3") { if (concurrent.length > 0) concurrent.forEach(t => { if(t.record.data.type==="score") t.bonus += 10; }); let gapTotal = 0; if(prev) gapTotal += calcGap(prev.record.start+prev.record.data.len, s); if(next) { gapTotal += calcGap(e, next.record.start); } else { gapTotal += calcGap(e, TICKS); } if (gapTotal > 0) { let extraMult = Math.min(2.4, gapTotal * 0.075); concurrent.forEach(t => { if(t.record.data.type === "score") { t.mult += extraMult; t.buffsReceived.push({text:`[${d.name}] +${(extraMult*100).toFixed(1)}%`, type:d.type}); } }); entry.triggered = true; } } 
-            else if (d.id === "EB4") { let totalSpace = s * 3; let occupied = 0; items.forEach(it => { let iS = it.start; let iE = it.start + it.data.len; if (iE <= s) occupied += it.data.len; else if (iS < s) occupied += (s - iS); }); let empty = Math.max(0, totalSpace - occupied) * globalGapMult; if (empty > 0) { let boost = empty * 0.05; entry.mult += boost; entry.buffsReceived.push({text:`[空拍] +${(boost*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } 
-            else if (d.id === "EB6") { let dur = e - s; let totalSpace = dur * 3; let occupied = 0; items.forEach(it => { if (it === p) return; let iS = it.start; let iE = it.start + it.data.len; let overlap = Math.max(0, Math.min(e, iE) - Math.max(s, iS)); occupied += overlap; }); occupied += dur; let empty = Math.max(0, totalSpace - occupied) * globalGapMult; if (empty > 0) { let boost = empty * 0.05; entry.mult += boost; entry.triggered = true; } } 
-            else if (d.id === "NG2") { if (concurrent.length > 0) { entry.bonus += 10; entry.triggered = true; } } 
-            else if (d.id === "NG3") { if (prev) { prev.mult += 0.35; prev.buffsReceived.push({text:`[${d.name}] +35%`, type:d.type}); } if (next) { next.mult += 0.35; next.buffsReceived.push({text:`[${d.name}] +35%`, type:d.type}); } if (concurrent.length === 0) { if (prev) { prev.mult += 0.35; prev.buffsReceived.push({text:`[${d.name}独奏] +35%`, type:d.type}); } if (next) { next.mult += 0.35; next.buffsReceived.push({text:`[${d.name}独奏] +35%`, type:d.type}); } entry.triggered = true; } } 
-        }); 
-        
-        output.forEach(entry => { 
-            const d = entry.record.data; 
-            if (d.id === "NG4") { 
-                const s = entry.record.start; 
-                const concurrent = output.filter(x => x !== entry && x.record.start === s); 
-                let suckedScore = 0; 
-                concurrent.forEach(t => { 
-                    if (t.record.data.type === "score") { 
-                        let current = (t.base + t.bonus) * t.mult * t.finalMultiplier; 
-                        t.finalMultiplier *= 0.5; 
-                        t.buffsReceived.push({text:`[${d.name}] 减半`, type:d.type}); 
-                        let now = (t.base + t.bonus) * t.mult * t.finalMultiplier; 
-                        suckedScore += (current - now); 
-                    } 
-                }); 
-                // V18.0 NG4 Fix: (Base+Sucked)*1.5
-                if (suckedScore > 0) { 
-                    // Current base is 40. We want Total = (40 + sucked) * 1.5.
-                    // Current formula: Total = (40 + bonus) * mult.
-                    // So 40 + bonus = 60 + 1.5*sucked
-                    // bonus = 20 + 1.5*sucked
-                    entry.bonus += 20 + (suckedScore * 1.5); 
-                    entry.buffsReceived.push({text:`吸取 +${(suckedScore * 1.5).toFixed(0)}`, type:d.type}); 
-                    entry.triggered = true; 
-                }  
-            } 
-        }); 
-        return output; 
-    }
+    function rerollShop() { if(state.isPlaying) return; const isManual = (event && event.target && event.target.id === 'btnReroll'); if (isManual) { if(state.gold < 10) { alert("No Gold"); return; } updateGold(-10); } state.currentShopItems = []; let candidates = DB.filter(i => state.poolIds.includes(i.id) && !state.inventory.some(inv => inv.id === i.id)); candidates.sort(() => Math.random() - 0.5); for(let i=0; i<4; i++) { if(candidates.length === 0) break; const rand = Math.random(); let rarityTarget = 1; if (rand > 0.6) rarityTarget = 2; if (rand > 0.9) rarityTarget = 3; let pool = candidates.filter(x => x.rarity === rarityTarget); if (pool.length === 0) pool = candidates; const itemBase = pool[0]; candidates = candidates.filter(x => x.id !== itemBase.id); const variance = Math.floor(Math.random() * 11) - 5; let finalPrice = itemBase.price + variance; const entryRound = state.poolEntryTimes[itemBase.id] || 0; const roundsInPool = state.levelIndex - entryRound; const discountChance = Math.min(0.5, 0.2 + (roundsInPool * 0.1)); let isDiscount = Math.random() < discountChance; let discountPercent = 0; if(isDiscount) { const maxOff = Math.min(0.5, 0.1 + (roundsInPool * 0.1)); const minOff = 0.1; const actualOff = minOff + Math.random() * (maxOff - minOff); finalPrice = Math.floor(finalPrice * (1 - actualOff)); discountPercent = Math.round(actualOff * 100); } state.currentShopItems.push({ data: itemBase, price: finalPrice, isDiscount: isDiscount, discountPercent: discountPercent, sold: false }); } renderShopFromState(); }
+    function renderShopFromState() { const list = document.getElementById('shopList'); list.innerHTML = ''; state.currentShopItems.forEach(item => { let d = document.createElement('div'); d.className = 'shop-item'; d.onclick = () => { if(!state.isPlaying) showDetail(item.data); }; let btn = document.createElement('button'); btn.className = "btn-buy"; if (item.sold) { btn.disabled = true; btn.innerText = UI_TEXT[state.lang].purchased; } else { btn.innerHTML = `${item.price}G`; btn.onclick = (e) => { e.stopPropagation(); if(state.gold>=item.price){ updateGold(-item.price); addItemToInventory(item.data.id, item.price); item.sold=true; updateInventoryUI(); renderShopFromState(); } else { alert("No Gold"); } }; } let html = `<div class="shop-row-top"><b style="color:${item.data.color}">${item.data.name[state.lang]}</b></div><div class="shop-row-btm"><span>CPU:${item.data.cpu}</span><span>Len:${item.data.len}</span></div>`; if (item.isDiscount) html += `<div class="discount-tag">-${item.discountPercent}%</div>`; d.innerHTML = html; d.querySelector('.shop-row-top').appendChild(btn); list.appendChild(d); }); }
+    function calculateLogic() { const items = state.placedItems; const sorted = [...items].sort((a,b) => a.start - b.start); let output = sorted.map(p => ({ record: p, base: p.data.base, bonus: 0, mult: 1.0, finalMultiplier: 1.0, triggered: false, buffsReceived: [], buffsGiven: [], forceStrong: false })); let globalWeakIsStrong = false; let globalGapMult = 1; output.forEach(entry => { const d = entry.record.data; const s = entry.record.start; const isNaturalStrong = (s % 8 === 0); if (d.id === "SB5" && isNaturalStrong) { globalWeakIsStrong = true; entry.triggered = true; } if (d.id === "EB5") { globalGapMult = 2; entry.triggered = true; } }); let strongBeatCount = 0; let sb4Triggered = false; output.forEach((entry, idx) => { const p = entry.record; const d = p.data; const s = p.start; const e = s + d.len; let isStrong = (s % 8 === 0) || (globalWeakIsStrong && s % 4 === 0) || entry.forceStrong; if (isStrong && (d.id.startsWith("SB") || d.id.startsWith("NG"))) strongBeatCount++; const trackItems = output.filter(x => x.record.track === p.track); const tIdx = trackItems.indexOf(entry); const prev = tIdx > 0 ? trackItems[tIdx-1] : null; const next = tIdx < trackItems.length-1 ? trackItems[tIdx+1] : null; const concurrent = output.filter(x => x !== entry && x.record.start === s); const calcGap = (t1, t2) => Math.max(0, t2 - t1) * globalGapMult; if (d.id === "SB1") { if (isStrong) { entry.bonus += 10; entry.triggered = true; } } else if (d.id === "SB2") { if (concurrent.length > 0) concurrent.forEach(t => { t.mult += 0.5; t.buffsReceived.push({text:`[${d.name[state.lang]}] +50%`, type:d.type}); }); if (isStrong && concurrent.length > 0) { concurrent.forEach(t => { t.mult += 0.25; t.buffsReceived.push({text:`[${d.name[state.lang]}] +25%`, type:d.type}); }); entry.triggered = true; } } else if (d.id === "SB3") { if (next) { next.mult += 1.0; next.buffsReceived.push({text:`[${d.name[state.lang]}] +100%`, type:d.type}); } if (isStrong && next) { next.forceStrong = true; entry.triggered = true; } } else if (d.id === "SB4") { if (isStrong && strongBeatCount > 5 && !sb4Triggered) { sb4Triggered = true; entry.triggered = true; for (let i = idx + 1; i < output.length; i++) { const target = output[i]; const tS = target.record.start; const tIsStrong = (tS % 8 === 0) || (globalWeakIsStrong && tS % 4 === 0) || target.forceStrong; if (tIsStrong && target.record.data.type === "score") { target.finalMultiplier *= 1.5; target.buffsReceived.push({text:`[${d.name[state.lang]}] x1.5`, type:d.type}); } } } } else if (d.id === "EB1") { if (prev) { const gap = calcGap(prev.record.start + prev.record.data.len, s); if (gap >= 4) { entry.bonus += 20; entry.triggered = true; } } } else if (d.id === "EB2") { if (next) { let boost = 0.35; next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); const gap = calcGap(e, next.record.start); if (gap > 0) { let extra = Math.min(1.25, gap * 0.125); next.mult += extra; next.buffsReceived.push({text:`[${d.name[state.lang]}] +${(extra*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } } else if (d.id === "EB3") { if (concurrent.length > 0) concurrent.forEach(t => { if(t.record.data.type==="score") t.bonus += 10; }); let gapTotal = 0; if(prev) gapTotal += calcGap(prev.record.start+prev.record.data.len, s); if(next) { gapTotal += calcGap(e, next.record.start); } else { gapTotal += calcGap(e, TICKS); } if (gapTotal > 0) { let extraMult = Math.min(2.4, gapTotal * 0.075); concurrent.forEach(t => { if(t.record.data.type === "score") { t.mult += extraMult; t.buffsReceived.push({text:`[${d.name[state.lang]}] +${(extraMult*100).toFixed(1)}%`, type:d.type}); } }); entry.triggered = true; } } else if (d.id === "EB4") { let totalSpace = s * 3; let occupied = 0; items.forEach(it => { let iS = it.start; let iE = it.start + it.data.len; if (iE <= s) occupied += it.data.len; else if (iS < s) occupied += (s - iS); }); let empty = Math.max(0, totalSpace - occupied) * globalGapMult; if (empty > 0) { let boost = empty * 0.05; entry.mult += boost; entry.buffsReceived.push({text:`[${d.name[state.lang]}] +${(boost*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } else if (d.id === "EB6") { let dur = e - s; let totalSpace = dur * 3; let occupied = 0; items.forEach(it => { if (it === p) return; let iS = it.start; let iE = it.start + it.data.len; let overlap = Math.max(0, Math.min(e, iE) - Math.max(s, iS)); occupied += overlap; }); occupied += dur; let empty = Math.max(0, totalSpace - occupied) * globalGapMult; if (empty > 0) { let boost = empty * 0.05; entry.mult += boost; entry.buffsReceived.push({text:`[${d.name[state.lang]}] +${(boost*100).toFixed(0)}%`, type:d.type}); entry.triggered = true; } } else if (d.id === "NG2") { if (concurrent.length > 0) { entry.bonus += 10; entry.triggered = true; } } else if (d.id === "NG3") { if (prev) { prev.mult += 0.35; prev.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (next) { next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (concurrent.length === 0) { if (prev) { prev.mult += 0.35; prev.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } if (next) { next.mult += 0.35; next.buffsReceived.push({text:`[${d.name[state.lang]}] +35%`, type:d.type}); } entry.triggered = true; } } }); output.forEach(entry => { const d = entry.record.data; if (d.id === "NG4") { const s = entry.record.start; const concurrent = output.filter(x => x !== entry && x.record.start === s); let suckedScore = 0; concurrent.forEach(t => { if (t.record.data.type === "score") { let current = (t.base + t.bonus) * t.mult * t.finalMultiplier; t.finalMultiplier *= 0.5; t.buffsReceived.push({text:`[${d.name[state.lang]}] -50%`, type:d.type}); let now = (t.base + t.bonus) * t.mult * t.finalMultiplier; suckedScore += (current - now); } }); if (suckedScore > 0) { entry.bonus += 20 + (suckedScore * 1.5); entry.buffsReceived.push({text:`+${(suckedScore * 1.5).toFixed(0)}`, type:d.type}); entry.triggered = true; } } }); return output; }
     function updateRealTimeState() { updateCPU(); const results = calculateLogic(); state.placedItems.forEach(p => { const res = results.find(r => r.record === p); p.el.classList.remove('glowing-score', 'glowing-support', 'glowing-engine'); if(res && res.triggered) { if (p.data.type === "score") p.el.classList.add('glowing-score'); else if (p.data.type === "support") p.el.classList.add('glowing-support'); else if (p.data.type === "engine") p.el.classList.add('glowing-engine'); } }); }
-    function openPoolConfig() { if(state.isPlaying) return; const grid = document.getElementById('poolGrid'); grid.innerHTML = ''; DB.forEach(item => { let d = document.createElement('div'); d.className = 'card ' + (state.poolIds.includes(item.id) ? 'active' : ''); d.innerHTML = item.name; d.onclick = () => { if(state.poolIds.includes(item.id)) { state.poolIds = state.poolIds.filter(x=>x!==item.id); d.classList.remove('active'); } else { state.poolIds.push(item.id); d.classList.add('active'); } }; grid.appendChild(d); }); document.getElementById('poolModal').style.display = 'flex'; }
-    function showDetail(item) { document.getElementById('detailTitle').innerText = item.name; document.getElementById('detailTitle').style.color = item.color; document.getElementById('detailMeta').innerHTML = `<span>CPU: ${item.cpu}</span><span>长度: ${item.len}格</span><span>基础分: ${item.base}</span>`; let desc = item.desc; if (item.id === "NG1") { desc += `<br><span style="color:#ffd700; font-weight:bold;">[当前已累计充能: ${state.ng1PermanentStacks} 层]</span>`; } for (const key in DEFINITIONS) { const regex = new RegExp(`\\[${key}\\]`, "g"); desc = desc.replace(regex, `<span class="tooltip-ref" onmouseenter="showTooltip(event, '${key}')" onmouseleave="hideTooltip()">[${key}]</span>`); } document.getElementById('detailContent').innerHTML = desc; }
+    function openPoolConfig() { if(state.isPlaying) return; const grid = document.getElementById('poolGrid'); grid.innerHTML = ''; DB.forEach(item => { let d = document.createElement('div'); d.className = 'card ' + (state.poolIds.includes(item.id) ? 'active' : ''); d.innerHTML = item.name[state.lang]; d.onclick = () => { if(state.poolIds.includes(item.id)) { state.poolIds = state.poolIds.filter(x=>x!==item.id); d.classList.remove('active'); } else { state.poolIds.push(item.id); d.classList.add('active'); } }; grid.appendChild(d); }); document.getElementById('poolModal').style.display = 'flex'; }
+    function showDetail(item) { document.getElementById('detailTitle').innerText = item.name[state.lang]; document.getElementById('detailTitle').style.color = item.color; document.getElementById('detailMeta').innerHTML = `<span>CPU: ${item.cpu}</span><span>${state.lang==='en'?'Len':'长度'}: ${item.len}</span><span>${state.lang==='en'?'Base':'基础'}: ${item.base}</span>`; let desc = item.desc[state.lang]; if (item.id === "NG1") { desc += `<br><span style="color:#ffd700; font-weight:bold;">[${UI_TEXT[state.lang].ng1Charge}: ${state.ng1PermanentStacks}]</span>`; } for (const key in DEFINITIONS[state.lang]) { const regex = new RegExp(`\\[${key}\\]`, "g"); desc = desc.replace(regex, `<span class="tooltip-ref" onmouseenter="showTooltip(event, '${key}')" onmouseleave="hideTooltip()">[${key}]</span>`); } document.getElementById('detailContent').innerHTML = desc; }
     function updateConfig() { config.maxCpu = parseInt(document.getElementById('maxCpuInput').value); config.target = parseInt(document.getElementById('targetInput').value); updateRealTimeState(); updateCPU(); }
 </script>
 </body>
